@@ -1,0 +1,42 @@
+@model ExerciseForm
+<h1>@ViewData["Title"]</h1>
+<div class="card dashboard-card"><div class="card-body">
+    <form asp-action="@ViewContext.RouteData.Values["action"]" asp-route-id="@ViewContext.RouteData.Values["id"]" asp-route-planId="@ViewData["PlanId"]" method="post">
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-3">
+    <label asp-for="ExerciseName" class="form-label"></label>
+    <input asp-for="ExerciseName" class="form-control" >
+    <span asp-validation-for="ExerciseName" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Sets" class="form-label"></label>
+    <input asp-for="Sets" class="form-control" >
+    <span asp-validation-for="Sets" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Repetitions" class="form-label"></label>
+    <input asp-for="Repetitions" class="form-control" >
+    <span asp-validation-for="Repetitions" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="DurationMinutes" class="form-label"></label>
+    <input asp-for="DurationMinutes" class="form-control" >
+    <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="CaloriesTarget" class="form-label"></label>
+    <input asp-for="CaloriesTarget" class="form-control" >
+    <span asp-validation-for="CaloriesTarget" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Instructions" class="form-label"></label>
+    <textarea asp-for="Instructions" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Instructions" class="text-danger"></span>
+</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save exercise</button>
+        <a asp-action="Details" asp-route-id="@ViewData["PlanId"]" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

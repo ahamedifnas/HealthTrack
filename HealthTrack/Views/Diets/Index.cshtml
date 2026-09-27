@@ -1,0 +1,32 @@
+@model List<DietPlan>
+@{ ViewData["Title"] = "My Diets"; }
+<section class="dashboard-heading">
+    <h1>@ViewData["Title"]</h1>
+    <p>Your assigned plans, including previous and inactive plans.</p>
+</section>
+<div class="mb-3">
+<a asp-action="Log" class="btn btn-primary">Log Meal</a>
+<a asp-action="History" class="btn btn-outline-secondary">Meal history</a>
+</div>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No diet plans available.</div>
+}
+else
+{
+    <div class="card dashboard-card"><div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+        <thead><tr><th>Plan</th><th>Trainer</th><th>Dates</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+        @foreach (var plan in Model)
+        {
+            <tr>
+                <td>@plan.PlanName</td><td>@plan.Trainer.FullName</td>
+                <td>@plan.StartDate.ToString("yyyy-MM-dd") &ndash; @plan.EndDate.ToString("yyyy-MM-dd")</td>
+                <td><span class="badge @(plan.Status == PlanStatus.Active ? "bg-success" : "bg-secondary")">@plan.Status</span></td>
+                <td><a asp-action="Details" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-primary">View plan</a></td>
+            </tr>
+        }
+        </tbody>
+    </table></div></div>
+}

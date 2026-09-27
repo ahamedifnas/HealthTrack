@@ -7,7 +7,11 @@
     <h1>Welcome, @Model.FullName!</h1>
     <p class="mb-0">Your Client dashboard brings your daily health essentials together.</p>
 </section>
-<p class="text-muted">Preview only: health measurements and plans will be available in later phases.</p>
+<div class="d-flex gap-2 flex-wrap mb-4">
+    <a asp-controller="Workouts" asp-action="Index" class="btn btn-primary">My Workouts</a>
+    <a asp-controller="Diets" asp-action="Index" class="btn btn-outline-primary">My Diet</a>
+</div>
+<p class="text-muted">Your workout and diet plans are available above. Summary cards below remain previews.</p>
 <div class="row g-4">
     @foreach (var title in new[] { "Current Weight", "BMI", "Calories Burned", "Target Weight" })
     {

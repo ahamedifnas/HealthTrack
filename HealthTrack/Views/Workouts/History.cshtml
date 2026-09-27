@@ -1,0 +1,24 @@
+@model List<WorkoutLog>
+@{ ViewData["Title"] ??= "Workout History"; }
+<h1>@ViewData["Title"]</h1>
+@if (User.IsInRole(AppRoles.Client) && !User.IsInRole(AppRoles.Trainer) && !User.IsInRole(AppRoles.Admin))
+{
+    <a asp-controller="Workouts" asp-action="Log" class="btn btn-primary mb-3">Log Workout</a>
+}
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No logs yet.</div>
+}
+else
+{
+    <div class="card dashboard-card"><div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+        <thead><tr><th>Date</th><th>Plan</th><th>Exercise</th><th>Minutes</th><th>kcal burned</th><th>Completed</th><th>Notes</th></tr></thead>
+        <tbody>
+        @foreach (var log in Model)
+        {
+            <tr><td class="text-break">@log.WorkoutDate.ToString("yyyy-MM-dd")</td><td class="text-break">@log.WorkoutPlan.PlanName</td><td class="text-break">@(log.WorkoutExercise?.ExerciseName ?? "Whole workout / removed exercise")</td><td class="text-break">@log.DurationMinutes</td><td class="text-break">@log.CaloriesBurned</td><td class="text-break">@(log.Completed ? "Yes" : "No")</td><td class="text-break">@log.Notes</td></tr>
+        }
+        </tbody>
+    </table></div></div>
+}

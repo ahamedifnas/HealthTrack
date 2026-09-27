@@ -1,0 +1,52 @@
+@model MealForm
+<h1>@ViewData["Title"]</h1>
+<div class="card dashboard-card"><div class="card-body">
+    <form asp-action="@ViewContext.RouteData.Values["action"]" asp-route-id="@ViewContext.RouteData.Values["id"]" asp-route-planId="@ViewData["PlanId"]" method="post">
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-3">
+    <label asp-for="MealType" class="form-label"></label>
+    <select asp-for="MealType" class="form-select" asp-items="Html.GetEnumSelectList<MealType>()"></select>
+    <span asp-validation-for="MealType" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="FoodName" class="form-label"></label>
+    <input asp-for="FoodName" class="form-control" >
+    <span asp-validation-for="FoodName" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Quantity" class="form-label"></label>
+    <input asp-for="Quantity" class="form-control" placeholder="e.g. 1 cup (150 g)">
+    <span asp-validation-for="Quantity" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Calories" class="form-label"></label>
+    <input asp-for="Calories" class="form-control" >
+    <span asp-validation-for="Calories" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Protein" class="form-label"></label>
+    <input asp-for="Protein" class="form-control" step="0.01">
+    <span asp-validation-for="Protein" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Carbohydrates" class="form-label"></label>
+    <input asp-for="Carbohydrates" class="form-control" step="0.01">
+    <span asp-validation-for="Carbohydrates" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Fat" class="form-label"></label>
+    <input asp-for="Fat" class="form-control" step="0.01">
+    <span asp-validation-for="Fat" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Instructions" class="form-label"></label>
+    <textarea asp-for="Instructions" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Instructions" class="text-danger"></span>
+</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save meal</button>
+        <a asp-action="Details" asp-route-id="@ViewData["PlanId"]" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

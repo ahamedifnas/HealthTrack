@@ -25,6 +25,19 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                             </li>
+                            @if (User.IsInRole(AppRoles.Trainer) && !User.IsInRole(AppRoles.Admin))
+                            {
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Clients" asp-action="Index">Clients</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="TrainerWorkouts" asp-action="Index">Workout Plans</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="TrainerDiets" asp-action="Index">Diet Plans</a></li>
+                            }
+                            else if (User.IsInRole(AppRoles.Client) && !User.IsInRole(AppRoles.Admin))
+                            {
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Workouts" asp-action="Index">My Workouts</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Workouts" asp-action="Log">Log Workout</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Diets" asp-action="Index">My Diet</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-controller="Diets" asp-action="Log">Log Meal</a></li>
+                            }
                         }
                         else
                         {
@@ -40,6 +53,14 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
+            @if (TempData["Success"] is string success)
+            {
+                <div class="alert alert-success" role="status">@success</div>
+            }
+            @if (TempData["Error"] is string error)
+            {
+                <div class="alert alert-danger" role="alert">@error</div>
+            }
             @RenderBody()
         </main>
     </div>

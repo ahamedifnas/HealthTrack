@@ -1,0 +1,28 @@
+@model PlanForm
+<div class="row">
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="ClientId" class="form-label"></label>
+    <select asp-for="ClientId" class="form-select" asp-items="Model.Clients"></select>
+    <span asp-validation-for="ClientId" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="PlanName" class="form-label"></label>
+    <input asp-for="PlanName" class="form-control" >
+    <span asp-validation-for="PlanName" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="StartDate" class="form-label"></label>
+    <input asp-for="StartDate" class="form-control" >
+    <span asp-validation-for="StartDate" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="EndDate" class="form-label"></label>
+    <input asp-for="EndDate" class="form-control" >
+    <span asp-validation-for="EndDate" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Description" class="form-label"></label>
+    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Description" class="text-danger"></span>
+</div>
+</div>

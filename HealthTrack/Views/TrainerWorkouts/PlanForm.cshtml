@@ -1,0 +1,19 @@
+@model PlanForm
+<h1>@ViewData["Title"]</h1>
+@if (Model.Clients.Count == 0)
+{
+    <div class="alert alert-info">You have no active assigned clients. Ask for a development client assignment before creating plans.</div>
+}
+else
+{
+    <div class="card dashboard-card"><div class="card-body">
+        <form asp-action="@ViewContext.RouteData.Values["action"]" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <partial name="_PlanFields" model="Model" />
+            
+            <button class="btn btn-primary" type="submit">Save plan</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div></div>
+}
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

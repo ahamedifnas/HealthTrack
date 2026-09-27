@@ -1,0 +1,35 @@
+@model List<DietMeal>
+@{ var manage = ViewData["CanManage"] is true; }
+<h2 class="h4">Meal items</h2>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No meal items have been added yet.</div>
+}
+@foreach (var group in Model.GroupBy(x => x.MealType).OrderBy(x => x.Key))
+{
+    <section class="card dashboard-card mb-3">
+        <div class="card-header"><h3 class="h5 mb-0">@group.Key</h3></div>
+        <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead><tr><th>Food</th><th>Quantity</th><th>kcal</th><th>Protein (g)</th><th>Carbs (g)</th><th>Fat (g)</th><th>Instructions</th>@if (manage) { <th>Actions</th> }</tr></thead>
+            <tbody>
+            @foreach (var meal in group.OrderBy(x => x.Id))
+            {
+                <tr>
+                    <td>@meal.FoodName</td><td>@meal.Quantity</td><td>@meal.Calories</td>
+                    <td>@meal.Protein</td><td>@meal.Carbohydrates</td><td>@meal.Fat</td><td class="text-break">@meal.Instructions</td>
+                    @if (manage)
+                    {
+                        <td>
+                            <a asp-controller="TrainerDiets" asp-action="EditMeal" asp-route-id="@meal.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form asp-controller="TrainerDiets" asp-action="DeleteMeal" asp-route-id="@meal.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this meal item? Existing logs will be kept.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table></div>
+    </section>
+}

@@ -6,7 +6,12 @@
     <h1>Trainer Dashboard</h1>
     <p class="mb-0">A place to keep track of your clients and their plans.</p>
 </section>
-<p class="text-muted">Preview only: client assignments, appointments, and plans will be available in later phases.</p>
+<div class="d-flex gap-2 flex-wrap mb-4">
+    <a asp-controller="Clients" asp-action="Index" class="btn btn-primary">Assigned Clients</a>
+    <a asp-controller="TrainerWorkouts" asp-action="Index" class="btn btn-outline-primary">Workout Plans</a>
+    <a asp-controller="TrainerDiets" asp-action="Index" class="btn btn-outline-primary">Diet Plans</a>
+</div>
+<p class="text-muted">The summary cards below are previews; use the links above to manage client plans.</p>
 <div class="row g-4">
     @foreach (var title in new[] { "Total Clients", "Today's Appointments", "Pending Appointments", "Active Workout Plans", "Active Diet Plans" })
     {

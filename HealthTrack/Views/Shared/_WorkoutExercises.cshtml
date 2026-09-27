@@ -1,0 +1,32 @@
+@model List<WorkoutExercise>
+@{ var manage = ViewData["CanManage"] is true; }
+<h2 class="h4">Exercises</h2>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No exercises have been added yet.</div>
+}
+else
+{
+    <div class="card dashboard-card"><div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+        <thead><tr><th>Exercise</th><th>Sets</th><th>Repetitions</th><th>Minutes</th><th>Target kcal</th><th>Instructions</th>@if (manage) { <th>Actions</th> }</tr></thead>
+        <tbody>
+        @foreach (var exercise in Model.OrderBy(x => x.Id))
+        {
+            <tr>
+                <td>@exercise.ExerciseName</td><td>@exercise.Sets</td><td>@exercise.Repetitions</td>
+                <td>@exercise.DurationMinutes</td><td>@exercise.CaloriesTarget</td><td class="text-break">@exercise.Instructions</td>
+                @if (manage)
+                {
+                    <td>
+                        <a asp-controller="TrainerWorkouts" asp-action="EditExercise" asp-route-id="@exercise.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form asp-controller="TrainerWorkouts" asp-action="DeleteExercise" asp-route-id="@exercise.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this exercise? Existing logs will be kept.');">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                }
+            </tr>
+        }
+        </tbody>
+    </table></div></div>
+}

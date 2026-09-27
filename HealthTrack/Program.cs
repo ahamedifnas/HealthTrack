@@ -1,5 +1,6 @@
 using HealthTrack.Data;
 using HealthTrack.Models;
+using HealthTrack.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,7 +44,14 @@ builder.Services.ConfigureApplicationCookie(options =>
         }
     };
 });
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<PlanAccess>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(FeaturePolicies.Trainer, policy => policy.RequireRole(AppRoles.Trainer)
+        .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin)));
+    options.AddPolicy(FeaturePolicies.Client, policy => policy.RequireRole(AppRoles.Client)
+        .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin) && !context.User.IsInRole(AppRoles.Trainer)));
+});
 
 var app = builder.Build();
 

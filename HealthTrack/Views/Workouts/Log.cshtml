@@ -1,0 +1,56 @@
+@model WorkoutLogForm
+@{ ViewData["Title"] = "Log Workout"; }
+<h1>@ViewData["Title"]</h1>
+@if (Model.Plans.Count == 0)
+{
+    <div class="alert alert-info">You need an active workout plan before you can add a log.</div>
+}
+else
+{
+    <p class="text-muted">Record a completed workout. Changing the plan reloads its exercise choices; choose the plan before filling in the other fields. The date must be within the plan dates and cannot be in the future.</p>
+    <div class="card dashboard-card"><div class="card-body">
+    <form asp-action="Log" method="post">
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        <div class="row"><div class="col-12 col-md-6 mb-3">
+    <label asp-for="WorkoutPlanId" class="form-label"></label>
+    <select asp-for="WorkoutPlanId" class="form-select" asp-items="Model.Plans" data-plan-picker></select>
+    <span asp-validation-for="WorkoutPlanId" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="WorkoutExerciseId" class="form-label"></label>
+    <select asp-for="WorkoutExerciseId" class="form-select" asp-items="Model.Exercises"><option value="">Whole workout / no specific exercise</option></select>
+    <span asp-validation-for="WorkoutExerciseId" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="WorkoutDate" class="form-label"></label>
+    <input asp-for="WorkoutDate" class="form-control" >
+    <span asp-validation-for="WorkoutDate" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="DurationMinutes" class="form-label"></label>
+    <input asp-for="DurationMinutes" class="form-control" >
+    <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="CaloriesBurned" class="form-label"></label>
+    <input asp-for="CaloriesBurned" class="form-control" >
+    <span asp-validation-for="CaloriesBurned" class="text-danger"></span>
+</div>
+<div class="col-12 col-md-6 mb-3">
+    <label asp-for="Notes" class="form-label"></label>
+    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Notes" class="text-danger"></span>
+</div></div>
+        <button class="btn btn-primary" type="submit">Save completed workout</button>
+        <a asp-action="History" class="btn btn-outline-secondary">View history</a>
+    </form>
+    </div></div>
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelector('[data-plan-picker]')?.addEventListener('change', function () {
+            window.location.href = '@Url.Action("Log")?planId=' + encodeURIComponent(this.value);
+        });
+    </script>
+}
