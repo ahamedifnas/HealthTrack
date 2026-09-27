@@ -37,7 +37,7 @@ public class AccountController(UserManager<ApplicationUser> users,
 
         await transaction.CommitAsync();
         await signIn.SignInAsync(user, isPersistent: false);
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Index", "Dashboard");
     }
 
     [AllowAnonymous, HttpGet]
@@ -53,8 +53,7 @@ public class AccountController(UserManager<ApplicationUser> users,
             var result = await signIn.PasswordSignInAsync(user, model.Password, model.RememberMe,
                 lockoutOnFailure: true);
             if (result.Succeeded)
-                return Url.IsLocalUrl(model.ReturnUrl)
-                    ? LocalRedirect(model.ReturnUrl!) : RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard");
         }
 
         ModelState.AddModelError(string.Empty, "Unable to sign in. Check your credentials or try again later.");

@@ -1,0 +1,49 @@
+@model HealthTrack.Models.Dashboard.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var counts = new[]
+    {
+        (Title: "Total Users", Value: Model.TotalUsers),
+        (Title: "Total Clients", Value: Model.TotalClients),
+        (Title: "Total Trainers", Value: Model.TotalTrainers),
+        (Title: "Active Users", Value: Model.ActiveUsers)
+    };
+}
+<section class="dashboard-heading">
+    <p class="dashboard-eyebrow">HealthTrack overview</p>
+    <h1>Admin Dashboard</h1>
+    <p class="mb-0">An overview of the people using HealthTrack.</p>
+</section>
+<p class="text-muted">User counts come from Identity. Active users are accounts marked active, including users who are offline.</p>
+<div class="row g-4">
+    @foreach (var count in counts)
+    {
+        <div class="col-12 col-sm-6 col-xl-3">
+            <section class="card dashboard-card h-100">
+                <div class="card-body">
+                    <h2 class="h6 text-muted">@count.Title</h2>
+                    <p class="dashboard-value mb-0">@count.Value</p>
+                </div>
+            </section>
+        </div>
+    }
+    <div class="col-12 col-lg-6">
+        <section class="card dashboard-card h-100">
+            <div class="card-body">
+                <span class="badge dashboard-badge mb-3">Coming soon</span>
+                <h2 class="h5">Total Appointments</h2>
+                <p class="dashboard-value">—</p>
+                <p class="text-muted mb-0">Appointment totals will be available in a later phase.</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-12 col-lg-6">
+        <section class="card dashboard-card h-100">
+            <div class="card-body">
+                <span class="badge dashboard-badge mb-3">Coming soon</span>
+                <h2 class="h5">System Activity</h2>
+                <p class="text-muted mb-0">System activity information will be available in a later phase.</p>
+            </div>
+        </section>
+    </div>
+</div>

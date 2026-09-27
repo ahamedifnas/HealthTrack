@@ -19,7 +19,45 @@ html {
 
 body {
   margin-bottom: 60px;
+  background-color: #f4f7fa;
+  color: #203547;
 }
+
+.navbar-brand {
+  color: #126b60 !important;
+  font-weight: 750;
+}
+
+.dashboard-heading {
+  background: linear-gradient(120deg, #125d55, #207a70);
+  color: white;
+  border-radius: 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  margin: 1.5rem 0;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-heading h1 {
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  font-weight: 700;
+}
+
+.dashboard-eyebrow {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.dashboard-card {
+  border: 1px solid #e0e8ee;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgb(32 53 71 / 5%);
+}
+
+.dashboard-card .card-body { padding: 1.5rem; }
+.dashboard-value { font-size: 2.2rem; font-weight: 700; color: #126b60; }
+.dashboard-badge { background-color: #e0f2ee; color: #125d55; }
+.navbar .nav-link { overflow-wrap: anywhere; }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
