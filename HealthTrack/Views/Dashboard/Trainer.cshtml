@@ -1,3 +1,4 @@
+@model HealthTrack.Models.Dashboard.TrainerDashboardViewModel
 @{
     ViewData["Title"] = "Trainer Dashboard";
 }
@@ -11,27 +12,57 @@
     <a asp-controller="TrainerWorkouts" asp-action="Index" class="btn btn-outline-primary">Workout Plans</a>
     <a asp-controller="TrainerDiets" asp-action="Index" class="btn btn-outline-primary">Diet Plans</a>
 </div>
-<p class="text-muted">The summary cards below are previews; use the links above to manage client plans.</p>
+<p class="text-muted">Client and plan counts reflect your current active assigned clients.</p>
 <div class="row g-4">
-    @foreach (var title in new[] { "Total Clients", "Today's Appointments", "Pending Appointments", "Active Workout Plans", "Active Diet Plans" })
+    <div class="col-12 col-sm-6 col-xl-4">
+        <section class="card dashboard-card h-100"><div class="card-body">
+            <h2 class="h6 text-muted">Today's Appointments</h2>
+            <p class="dashboard-value" data-testid="today-appointments">@Model.TodayAppointmentCount</p>
+            <p class="small text-muted">Excludes cancelled appointments. Time zone: @ViewData["TimeZoneId"].</p>
+            <a asp-controller="Appointments" asp-action="Index">View appointments</a>
+        </div></section>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <section class="card dashboard-card h-100"><div class="card-body">
+            <h2 class="h6 text-muted">Pending Appointments</h2>
+            <p class="dashboard-value" data-testid="pending-appointments">@Model.PendingAppointmentCount</p>
+            <a asp-controller="Appointments" asp-action="Index">Review appointments</a>
+        </div></section>
+    </div>
+    @foreach (var metric in Model.Metrics)
     {
         <div class="col-12 col-sm-6 col-xl-4">
-            <section class="card dashboard-card h-100">
-                <div class="card-body">
-                    <h2 class="h6 text-muted">@title</h2>
-                    <p class="dashboard-value">—</p>
-                    <p class="small text-muted mb-0">Not available yet</p>
-                </div>
-            </section>
+            <section class="card dashboard-card h-100"><div class="card-body">
+                <h2 class="h6 text-muted">@metric.Title</h2>
+                <p class="dashboard-value mb-0" data-testid="@metric.TestId">@metric.Value</p>
+            </div></section>
         </div>
     }
-    <div class="col-12 col-sm-6 col-xl-4">
-        <section class="card dashboard-card h-100">
-            <div class="card-body">
-                <span class="badge dashboard-badge mb-3">Coming soon</span>
-                <h2 class="h5">Recent Clients</h2>
-                <p class="text-muted mb-0">Your recently assigned clients will appear here.</p>
-            </div>
-        </section>
+    <div class="col-12">
+        <section class="card dashboard-card"><div class="card-body">
+            <h2 class="h5">Recent Clients</h2>
+            @if (Model.RecentClients.Count == 0)
+            {
+                <p class="text-muted mb-0">No active clients assigned yet. Ask your Admin to assign a client.</p>
+            }
+            else
+            {
+                <div class="table-responsive"><table class="table align-middle mb-0">
+                    <thead><tr><th scope="col">Client</th><th scope="col">Assigned (UTC)</th><th scope="col">Actions</th></tr></thead>
+                    <tbody>
+                    @foreach (var client in Model.RecentClients)
+                    {
+                        <tr><td>@client.FullName <span class="small text-muted">(@client.Email)</span></td><td>@client.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td><td>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="TrainerWorkouts" asp-action="Create" asp-route-clientId="@client.Id" class="btn btn-sm btn-outline-success">Create Workout Plan</a>
+                                <a asp-controller="TrainerDiets" asp-action="Create" asp-route-clientId="@client.Id" class="btn btn-sm btn-outline-success">Create Diet Plan</a>
+                                <a asp-controller="Progress" asp-action="Index" asp-route-clientId="@client.Id" class="btn btn-sm btn-outline-secondary">Progress</a>
+                            </div>
+                        </td></tr>
+                    }
+                    </tbody>
+                </table></div>
+            }
+        </div></section>
     </div>
 </div>

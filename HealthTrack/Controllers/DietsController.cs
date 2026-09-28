@@ -16,13 +16,13 @@ public class DietsController(ApplicationDbContext database) : Controller
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private IQueryable<DietPlan> MyPlans => database.DietPlans.Where(x => x.ClientId == UserId);
 
-    public async Task<IActionResult> Index() => View(await MyPlans.Include(x => x.Trainer)
-        .OrderByDescending(x => x.CreatedAt).ToListAsync());
+    public async Task<IActionResult> Index() => View((await MyPlans.Include(x => x.Trainer)
+        .OrderByDescending(x => x.CreatedAt).ToListAsync()).Select(x => PlanViewModel.From(x, false)).ToList());
 
     public async Task<IActionResult> Details(int id)
     {
         var plan = await MyPlans.Include(x => x.Trainer).Include(x => x.Meals).FirstOrDefaultAsync(x => x.Id == id);
-        return plan is null ? NotFound() : View(plan);
+        return plan is null ? NotFound() : View(PlanViewModel.From(plan, false));
     }
 
     [HttpGet]
@@ -57,8 +57,8 @@ public class DietsController(ApplicationDbContext database) : Controller
         return RedirectToAction(nameof(History));
     }
 
-    public async Task<IActionResult> History() => View(await database.MealLogs.Include(x => x.DietPlan)
-        .Where(x => x.ClientId == UserId).OrderByDescending(x => x.MealDate).ThenByDescending(x => x.Id).ToListAsync());
+    public async Task<IActionResult> History() { ViewData["CanLog"] = true; return View(await database.MealLogs.Include(x => x.DietPlan)
+        .Where(x => x.ClientId == UserId).OrderByDescending(x => x.MealDate).ThenByDescending(x => x.Id).ToListAsync()); }
 
     private async Task Populate(MealLogForm model)
     {

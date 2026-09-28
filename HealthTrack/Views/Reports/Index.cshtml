@@ -1,0 +1,19 @@
+@model IReadOnlyList<HealthTrack.Models.Reports.ReportClient>
+@{ ViewData["Title"] = "Reports"; }
+<div class="dashboard-heading"><h1>Reports</h1><p>Generate a report for one of your assigned clients.</p></div>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No assigned clients available for reports.</div>
+}
+@foreach (var client in Model)
+{
+    <div class="card mb-3"><div class="card-body">
+        <h2 class="h5">@client.Name</h2><p class="text-muted">@client.Email</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-success" asp-action="Progress" asp-route-clientId="@client.Id">Client Progress</a>
+            <a class="btn btn-outline-success" asp-action="Workout" asp-route-clientId="@client.Id">Workout</a>
+            <a class="btn btn-outline-success" asp-action="Diet" asp-route-clientId="@client.Id">Diet</a>
+            <a class="btn btn-outline-success" asp-action="Appointments" asp-route-clientId="@client.Id">Appointments</a>
+        </div>
+    </div></div>
+}

@@ -1,0 +1,11 @@
+@model HealthTrack.Models.Measurements.TargetWeightViewModel
+@{ ViewData["Title"] = "Target Weight"; }
+<section class="dashboard-heading"><h1>Target Weight</h1><p class="mb-0">Set your personal weight goal.</p></section>
+<div class="card dashboard-card"><div class="card-body">
+<form asp-action="TargetWeight" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <div class="mb-3"><label asp-for="TargetWeight" class="form-label"></label><input asp-for="TargetWeight" type="number" min="1" max="500" step="0.01" class="form-control" /><span asp-validation-for="TargetWeight" class="text-danger"></span><div class="form-text">Leave blank to clear your target.</div></div>
+    <button class="btn btn-success" type="submit">Save target</button>
+    <a asp-controller="Dashboard" asp-action="Client" class="btn btn-outline-secondary">Cancel</a>
+</form>
+</div></div>

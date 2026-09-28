@@ -1,0 +1,14 @@
+@model AppointmentScheduleForm
+<p class="text-muted">Times use @ViewData["TimeZoneId"]. Choose a future time; another Pending/Approved booking cannot use the same start time for either participant.</p>
+<div class="row">
+    <div class="col-12 col-md-6 mb-3">
+        <label asp-for="AppointmentDate" class="form-label"></label>
+        <input asp-for="AppointmentDate" class="form-control" min="@ViewData["Today"]" />
+        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+    </div>
+    <div class="col-12 col-md-6 mb-3">
+        <label asp-for="AppointmentTime" class="form-label"></label>
+        <input asp-for="AppointmentTime" asp-format="{0:HH:mm}" class="form-control" step="60" />
+        <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+    </div>
+</div>

@@ -17,31 +17,44 @@ public static class IdentitySeeder
 
         if (!environment.IsDevelopment()) return;
 
-        var email = configuration["DevelopmentAdmin:Email"];
-        var password = configuration["DevelopmentAdmin:Password"];
+        var email = configuration["Admin:Email"]?.Trim();
+        var password = configuration["Admin:Password"];
         if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(password)) return;
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-            throw new InvalidOperationException("Set both DevelopmentAdmin:Email and DevelopmentAdmin:Password.");
+            throw new InvalidOperationException("Set both Admin:Email and Admin:Password for development Admin seeding.");
 
         var users = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var existing = await users.FindByEmailAsync(email);
-        if (existing is not null)
+        var admin = await users.FindByEmailAsync(email);
+        if (admin is not null && (await users.IsInRoleAsync(admin, AppRoles.Client)
+            || await users.IsInRoleAsync(admin, AppRoles.Trainer)))
         {
-            // Never elevate a pre-existing public account based only on its email address.
-            if (!await users.IsInRoleAsync(existing, AppRoles.Admin))
-                throw new InvalidOperationException("The development admin email belongs to a non-admin account. Use a different email.");
-            return;
+            throw new InvalidOperationException("The configured Admin email belongs to a Client or Trainer. That account will not be changed.");
         }
 
         var database = services.GetRequiredService<ApplicationDbContext>();
         await using var transaction = await database.Database.BeginTransactionAsync();
-        var admin = new ApplicationUser
+        if (admin is null)
         {
-            UserName = email.Trim(), Email = email.Trim(),
-            FullName = "Development Admin", EmailConfirmed = true
-        };
-        EnsureSucceeded(await users.CreateAsync(admin, password));
-        EnsureSucceeded(await users.AddToRoleAsync(admin, AppRoles.Admin));
+            admin = new ApplicationUser
+            {
+                UserName = email, Email = email,
+                FullName = "HealthTrack Admin", IsActive = true, EmailConfirmed = true
+            };
+            EnsureSucceeded(await users.CreateAsync(admin, password));
+        }
+        else
+        {
+            admin.IsActive = true;
+            EnsureSucceeded(await users.UpdateAsync(admin));
+            // Identity validates and hashes the configured password; never write PasswordHash directly.
+            var token = await users.GeneratePasswordResetTokenAsync(admin);
+            EnsureSucceeded(await users.ResetPasswordAsync(admin, token, password));
+            EnsureSucceeded(await users.SetLockoutEndDateAsync(admin, null));
+            EnsureSucceeded(await users.ResetAccessFailedCountAsync(admin));
+        }
+
+        if (!await users.IsInRoleAsync(admin, AppRoles.Admin))
+            EnsureSucceeded(await users.AddToRoleAsync(admin, AppRoles.Admin));
         await transaction.CommitAsync();
     }
 

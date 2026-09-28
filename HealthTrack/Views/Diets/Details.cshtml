@@ -1,21 +1,19 @@
-@model DietPlan
+@model PlanViewModel
 @{
     ViewData["Title"] = Model.PlanName;
-    ViewData["CanManage"] = false;
 }
-<section class="dashboard-heading"><h1>@Model.PlanName</h1><p>Trainer: @Model.Trainer.FullName</p></section>
+<section class="dashboard-heading"><h1>@Model.PlanName</h1><p>Trainer: @Model.TrainerName</p></section>
 <div class="card dashboard-card mb-4"><div class="card-body">
     <p class="text-break">@Model.Description</p>
     <p>@Model.StartDate.ToString("yyyy-MM-dd") &ndash; @Model.EndDate.ToString("yyyy-MM-dd")
-    <span class="badge @(Model.Status == PlanStatus.Active ? "bg-success" : "bg-secondary")">@Model.Status</span></p>
+    <span class="badge @Model.StatusCss">@Model.Status</span></p>
     <p><strong>Daily target:</strong> @Model.DailyCalories kcal</p>
     <div class="d-flex gap-2 flex-wrap">
-    @if (Model.Status == PlanStatus.Active)
+    @if (Model.CanLog)
     {
         <a asp-action="Log" asp-route-planId="@Model.Id" class="btn btn-primary">Log Meal</a>
     }
     <a asp-action="Index" class="btn btn-outline-secondary">Back to plans</a>
     </div>
 </div></div>
-<partial name="_DietMeals" model="Model.Meals" />
-
+<partial name="_DietMeals" model="Model" />

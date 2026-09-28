@@ -1,0 +1,13 @@
+@model IEnumerable<HealthTrack.Models.HealthMeasurement>
+<div class="card dashboard-card"><div class="table-responsive">
+<table class="table table-striped align-middle mb-0">
+    <caption class="px-3">Recorded health measurements, newest first</caption>
+    <thead><tr><th scope="col">Date</th><th scope="col">Weight (kg)</th><th scope="col">Height (cm)</th><th scope="col">BMI</th><th scope="col">Body fat (%)</th><th scope="col">Heart rate (bpm)</th><th scope="col">Calories (kcal)</th><th scope="col">Notes</th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr><td>@item.MeasurementDate.ToString("yyyy-MM-dd")</td><td>@item.WeightKg.ToString("0.##")</td><td>@item.HeightCm.ToString("0.##")</td><td>@item.BMI.ToString("0.00")</td><td>@(item.BodyFatPercentage?.ToString("0.##") ?? "Not recorded")</td><td>@(item.HeartRate?.ToString() ?? "Not recorded")</td><td>@item.CaloriesBurned</td><td class="measurement-notes">@item.Notes</td></tr>
+    }
+    </tbody>
+</table>
+</div></div>

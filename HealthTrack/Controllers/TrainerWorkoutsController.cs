@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HealthTrack.Data;
+using HealthTrack.Models;
 using HealthTrack.Models.Training;
 using HealthTrack.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,18 +12,17 @@ namespace HealthTrack.Controllers;
 
 [Authorize(Policy = FeaturePolicies.Trainer)]
 [AutoValidateAntiforgeryToken]
-public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess access) : Controller
+public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess access, NotificationService notifications) : Controller
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private IQueryable<WorkoutPlan> OwnedPlans => access.Workouts(UserId);
 
-    public async Task<IActionResult> Index() =>
-        View(await OwnedPlans.Include(x => x.Client).OrderByDescending(x => x.CreatedAt).ToListAsync());
+    public async Task<IActionResult> Index() => View((await OwnedPlans.Include(x => x.Client).OrderByDescending(x => x.CreatedAt).ToListAsync()).Select(x => PlanViewModel.From(x, true)).ToList());
 
     public async Task<IActionResult> Details(int id)
     {
         var plan = await OwnedPlans.Include(x => x.Client).Include(x => x.Exercises).FirstOrDefaultAsync(x => x.Id == id);
-        return plan is null ? NotFound() : View(plan);
+        return plan is null ? NotFound() : View(PlanViewModel.From(plan, true));
     }
 
     [HttpGet]
@@ -52,6 +52,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
             Description = model.Description, StartDate = model.StartDate, EndDate = model.EndDate
         };
         database.WorkoutPlans.Add(plan);
+        notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Workout, assigned: true);
         await database.SaveChangesAsync();
         TempData["Success"] = "Workout plan created.";
         return RedirectToAction(nameof(Details), new { id = plan.Id });
@@ -85,6 +86,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
             ViewData["Title"] = "Edit workout plan";
             return View("PlanForm", model);
         }
+        notifications.Plan(plan.ClientId, model.PlanName.Trim(), NotificationType.Workout);
         plan.PlanName = model.PlanName.Trim();
         plan.Description = model.Description;
         plan.StartDate = model.StartDate;
@@ -101,6 +103,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
         var plan = await OwnedPlans.FirstOrDefaultAsync(x => x.Id == id);
         if (plan is null) return NotFound();
         if (!Enum.IsDefined(status)) return BadRequest();
+        if (plan.Status != status) notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Workout);
         plan.Status = status;
         await database.SaveChangesAsync();
         TempData["Success"] = $"Plan is now {status.ToString().ToLowerInvariant()}.";
@@ -126,6 +129,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
             ViewData["Title"] = "Add exercise";
             return View("ExerciseForm", model);
         }
+        await NotifyPlanUpdate(planId);
         database.WorkoutExercises.Add(new WorkoutExercise
         {
             WorkoutPlanId = planId,
@@ -172,6 +176,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
             ViewData["Title"] = "Edit exercise";
             return View("ExerciseForm", model);
         }
+        await NotifyPlanUpdate(item.WorkoutPlanId);
         item.ExerciseName = model.ExerciseName;
         item.Sets = model.Sets;
         item.Repetitions = model.Repetitions;
@@ -183,12 +188,22 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
         return RedirectToAction(nameof(Details), new { id = item.WorkoutPlanId });
     }
 
+    [HttpGet, ActionName("DeleteExercise")]
+    public async Task<IActionResult> ConfirmDeleteExercise(int id)
+    {
+        var item = await database.WorkoutExercises.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
+        return item is null ? NotFound() : View("Confirm", new HealthTrack.Models.ConfirmationViewModel(
+            "Delete exercise", $"Delete {item.ExerciseName}? Existing workout logs will be kept.", "DeleteExercise", id, "Details", item.WorkoutPlanId));
+    }
+
     [HttpPost]
     public async Task<IActionResult> DeleteExercise(int id)
     {
         var item = await database.WorkoutExercises
             .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
         if (item is null) return NotFound();
+        await NotifyPlanUpdate(item.WorkoutPlanId);
         database.WorkoutExercises.Remove(item);
         await database.SaveChangesAsync();
         TempData["Success"] = "Exercise deleted. Existing logs have been preserved.";
@@ -204,6 +219,12 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
             .Where(x => x.ClientId == clientId && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId))
             .OrderByDescending(x => x.WorkoutDate).ThenByDescending(x => x.Id).ToListAsync();
         return View("~/Views/Workouts/History.cshtml", logs);
+    }
+
+    private async Task NotifyPlanUpdate(int planId)
+    {
+        var plan = await OwnedPlans.SingleAsync(x => x.Id == planId);
+        notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Workout);
     }
 
     private async Task PopulateClients(PlanForm model, string? clientId = null)

@@ -1,0 +1,41 @@
+@model HealthTrack.Models.Appointments.AppointmentDetailsViewModel
+@{ ViewData["Title"] = "Appointment Details"; }
+<section class="dashboard-heading"><h1>Appointment Details</h1><p class="mb-0">@Model.Appointment.AppointmentDate.ToString("yyyy-MM-dd") at @Model.Appointment.AppointmentTime.ToString("HH:mm") (@Model.TimeZoneId)</p></section>
+<div class="card dashboard-card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-3">Client</dt><dd class="col-sm-9">@Model.Appointment.Client.FullName</dd>
+        <dt class="col-sm-3">Trainer</dt><dd class="col-sm-9">@Model.Appointment.Trainer.FullName</dd>
+        <dt class="col-sm-3">Status</dt><dd class="col-sm-9"><partial name="_AppointmentStatus" model="Model.Appointment.Status" /></dd>
+        <dt class="col-sm-3">Reason</dt><dd class="col-sm-9 text-break">@Model.Appointment.Reason</dd>
+        <dt class="col-sm-3">Notes</dt><dd class="col-sm-9 text-break">@(string.IsNullOrWhiteSpace(Model.Appointment.Notes) ? "No notes yet." : Model.Appointment.Notes)</dd>
+    </dl>
+    @if (Model.IsAdmin) { <p class="text-muted">Admin access is read-only.</p> }
+    <div class="d-flex gap-2 flex-wrap">
+        @if (Model.CanClientCancel)
+        {
+            <a asp-action="Cancel" asp-route-id="@Model.Appointment.Id" class="btn btn-outline-danger">Cancel appointment</a>
+        }
+        @if (Model.CanManage)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Appointment.Id" class="btn btn-primary">Update / reschedule</a>
+            @if (Model.CanApprove)
+            {
+                <form asp-action="Approve" asp-route-id="@Model.Appointment.Id" method="post">
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+            }
+            @if (Model.CanComplete)
+            {
+                <form asp-action="Complete" asp-route-id="@Model.Appointment.Id" method="post">
+                    <button type="submit" class="btn btn-success">Mark Completed</button>
+                </form>
+            }
+            <a asp-action="TrainerCancel" asp-route-id="@Model.Appointment.Id" class="btn btn-outline-danger">Cancel appointment</a>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to appointments</a>
+    </div>
+    @if (Model.AwaitingScheduledTime)
+    {
+        <p class="small text-muted mt-3 mb-0">Mark Completed becomes available once the scheduled time has arrived.</p>
+    }
+</div></div>

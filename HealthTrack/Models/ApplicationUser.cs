@@ -8,6 +8,9 @@ public class ApplicationUser : IdentityUser
     [Required, StringLength(100)]
     public string FullName { get; set; } = string.Empty;
 
+    public decimal? TargetWeight { get; set; }
+    public ICollection<HealthMeasurement> HealthMeasurements { get; set; } = new List<HealthMeasurement>();
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; } = true;
 }

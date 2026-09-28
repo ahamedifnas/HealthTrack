@@ -1,7 +1,7 @@
 @model List<WorkoutLog>
 @{ ViewData["Title"] ??= "Workout History"; }
 <h1>@ViewData["Title"]</h1>
-@if (User.IsInRole(AppRoles.Client) && !User.IsInRole(AppRoles.Trainer) && !User.IsInRole(AppRoles.Admin))
+@if (ViewData["CanLog"] is true)
 {
     <a asp-controller="Workouts" asp-action="Log" class="btn btn-primary mb-3">Log Workout</a>
 }

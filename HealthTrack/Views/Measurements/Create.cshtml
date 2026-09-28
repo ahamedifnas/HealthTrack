@@ -1,0 +1,20 @@
+@model HealthTrack.Models.Measurements.AddMeasurementViewModel
+@{ ViewData["Title"] = "Add Health Measurement"; }
+<section class="dashboard-heading"><h1>Add Health Measurement</h1><p class="mb-0">Record one measurement per day. BMI is calculated from your weight and height.</p></section>
+<div class="card dashboard-card"><div class="card-body">
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <div class="row g-3">
+    <div class="col-12 col-md-6"><label asp-for="MeasurementDate" class="form-label"></label><input asp-for="MeasurementDate" type="date"  class="form-control" /><span asp-validation-for="MeasurementDate" class="text-danger"></span></div>
+<div class="col-12 col-md-6"><label asp-for="WeightKg" class="form-label"></label><input asp-for="WeightKg" type="number" step="0.01" min="1" max="500" class="form-control" /><span asp-validation-for="WeightKg" class="text-danger"></span></div>
+<div class="col-12 col-md-6"><label asp-for="HeightCm" class="form-label"></label><input asp-for="HeightCm" type="number" step="0.01" min="30" max="300" class="form-control" /><span asp-validation-for="HeightCm" class="text-danger"></span></div>
+<div class="col-12 col-md-6"><label asp-for="BodyFatPercentage" class="form-label"></label><input asp-for="BodyFatPercentage" type="number" step="0.01" min="0" max="100" class="form-control" /><span asp-validation-for="BodyFatPercentage" class="text-danger"></span></div>
+<div class="col-12 col-md-6"><label asp-for="HeartRate" class="form-label"></label><input asp-for="HeartRate" type="number" min="1" max="300" class="form-control" /><span asp-validation-for="HeartRate" class="text-danger"></span></div>
+<div class="col-12 col-md-6"><label asp-for="CaloriesBurned" class="form-label"></label><input asp-for="CaloriesBurned" type="number" min="0" max="50000" class="form-control" /><span asp-validation-for="CaloriesBurned" class="text-danger"></span></div>
+    <div class="col-12"><label asp-for="Notes" class="form-label"></label><textarea asp-for="Notes" class="form-control" rows="3"></textarea><span asp-validation-for="Notes" class="text-danger"></span></div>
+    </div>
+    <p class="form-text">Body fat, heart rate, and notes are optional. Calories burned is your daily total in kcal; enter 0 if none recorded.</p>
+    <button class="btn btn-success" type="submit">Save measurement</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+</form>
+</div></div>

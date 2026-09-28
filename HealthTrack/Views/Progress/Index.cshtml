@@ -1,0 +1,44 @@
+@model HealthTrack.Models.Measurements.ProgressViewModel
+@{ ViewData["Title"] = "Progress"; }
+<section class="dashboard-heading"><h1>Progress</h1><p class="mb-0">@Model.FullName</p></section>
+@if (Model.IsOwnProgress)
+{
+    <div class="d-flex gap-2 flex-wrap mb-4"><a asp-controller="Measurements" asp-action="Create" class="btn btn-success">+ Add Measurement</a><a asp-controller="Measurements" asp-action="TargetWeight" class="btn btn-outline-success">Set target weight</a></div>
+}
+else { <a asp-controller="Clients" asp-action="Index" class="btn btn-outline-success mb-4">Assigned clients</a> }
+<p>Target weight: <strong>@(Model.TargetWeight is { } target ? target.ToString("0.##") + " kg" : "Not set")</strong></p>
+@if (Model.Latest is { } latest)
+{
+    <section class="card dashboard-card mb-4"><div class="card-body">
+        <h2 class="h5">Latest measurement - @latest.MeasurementDate.ToString("yyyy-MM-dd")</h2>
+        <div class="row g-3">
+            <div class="col-sm-6 col-lg-3">Weight <strong>@latest.WeightKg.ToString("0.##") kg</strong></div>
+            <div class="col-sm-6 col-lg-3">Height <strong>@latest.HeightCm.ToString("0.##") cm</strong></div>
+            <div class="col-sm-6 col-lg-3">BMI <strong>@latest.BMI.ToString("0.00")</strong></div>
+            <div class="col-sm-6 col-lg-3">Calories burned <strong>@latest.CaloriesBurned kcal</strong></div>
+            <div class="col-sm-6">Body fat <strong>@(latest.BodyFatPercentage?.ToString("0.##") ?? "Not recorded") %</strong></div>
+            <div class="col-sm-6">Heart rate <strong>@(latest.HeartRate?.ToString() ?? "Not recorded") bpm</strong></div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(latest.Notes)) { <p class="mt-3 mb-0 measurement-notes">@latest.Notes</p> }
+    </div></section>
+    <section class="card dashboard-card mb-4" aria-labelledby="progress-trends">
+        <div class="card-body">
+            <h2 id="progress-trends" class="h4">Weight, BMI and calories trends</h2>
+            <p class="text-muted">Recorded dates only. Changes compare consecutive measurements; missing dates are not treated as zero.</p>
+            <div class="table-responsive">
+                <table class="table table-striped" id="progress-table">
+                    <thead><tr><th>Date</th><th>Weight (kg)</th><th>Weight change (kg)</th><th>BMI</th><th>BMI change</th><th>Calories burned (kcal)</th></tr></thead>
+                    <tbody>
+                    @foreach (var row in Model.Trends)
+                    {
+                        <tr><td>@row.Date.ToString("yyyy-MM-dd")</td><td>@row.Weight.ToString("0.##")</td><td>@(row.WeightChange?.ToString("+0.##;-0.##;0") ?? "First measurement")</td><td>@row.BMI.ToString("0.00")</td><td>@(row.BMIChange?.ToString("+0.00;-0.00;0.00") ?? "First measurement")</td><td>@row.Calories</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    <h2 class="h4">Measurement history</h2>
+    <partial name="_MeasurementHistory" model="Model.Measurements" />
+}
+else { <div class="alert alert-info">No measurements yet. Progress tables will appear after the first measurement.</div> }

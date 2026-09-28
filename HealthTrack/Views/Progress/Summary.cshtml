@@ -1,0 +1,11 @@
+@model HealthTrack.Models.Measurements.HealthSummaryViewModel
+@{ ViewData["Title"] = "Health Summary"; }
+<section class="dashboard-heading"><h1>Health Summary</h1><p class="mb-0">Aggregate measurement statistics across HealthTrack clients.</p></section>
+<div class="row g-4">
+@foreach (var item in new[] { (Title: "Total measurements", Value: (long)Model.TotalMeasurements), (Title: "Clients with measurements", Value: (long)Model.ClientsWithMeasurements), (Title: "Clients with target weight", Value: (long)Model.ClientsWithTargets), (Title: "Calories recorded - last 7 days (kcal)", Value: Model.RecentCaloriesBurned) })
+{
+    <div class="col-12 col-md-6 col-xl-3"><section class="card dashboard-card h-100"><div class="card-body"><h2 class="h6 text-muted">@item.Title</h2><p class="dashboard-value mb-0">@item.Value</p></div></section></div>
+}
+</div>
+<p class="text-muted mt-3">The recent total includes today and the previous six days in the configured HealthTrack time zone.</p>
+<a asp-controller="Dashboard" asp-action="Admin" class="btn btn-outline-success">Admin dashboard</a>

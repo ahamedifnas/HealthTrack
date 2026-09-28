@@ -2,7 +2,7 @@
 <h1>@ViewData["Title"]</h1>
 @if (Model.Clients.Count == 0)
 {
-    <div class="alert alert-info">You have no active assigned clients. Ask for a development client assignment before creating plans.</div>
+    <div class="alert alert-info">You have no active assigned clients. Ask your Admin to assign a client using Trainer-Client Assignment on the Admin Dashboard.</div>
 }
 else
 {
@@ -20,4 +20,3 @@ else
         </form>
     </div></div>
 }
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,36 @@
+@model HealthTrack.Models.Admin.CreateTrainerViewModel
+@{ ViewData["Title"] = "Create Trainer"; }
+<section class="dashboard-heading"><h1>Create Trainer</h1><p class="mb-0">The new account will be active and assigned the Trainer role.</p></section>
+<div class="row"><div class="col-12 col-lg-8">
+    <div class="card dashboard-card"><div class="card-body">
+        <form asp-action="Create" method="post">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            }
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" autocomplete="name" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" aria-describedby="password-help" />
+                <div id="password-help" class="form-text">Use 8–100 characters, including uppercase, lowercase, a number and a symbol.</div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Trainer</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div></div>
+</div></div>

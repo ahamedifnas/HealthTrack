@@ -1,0 +1,11 @@
+@model AppointmentStatus
+@{
+    var color = Model switch
+    {
+        AppointmentStatus.Pending => "bg-warning text-dark",
+        AppointmentStatus.Approved => "bg-primary",
+        AppointmentStatus.Completed => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+<span class="badge @color">@Model</span>

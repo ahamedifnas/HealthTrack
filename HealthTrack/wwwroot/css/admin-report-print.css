@@ -1,0 +1,18 @@
+body { margin: 0; background: #f4f7fa; color: #222; font: 11pt/1.5 Arial, sans-serif; }
+.print-report { box-sizing: border-box; max-width: 210mm; margin: 1.5rem auto; padding: 15mm; background: white; }
+h1 { font-size: 20pt; margin-top: 0; }
+table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+caption { text-align: left; font-weight: bold; margin-bottom: .5rem; }
+th, td { border: 1px solid #999; padding: .5rem .75rem; text-align: left; }
+thead { background: #eef3f0; }
+tbody th { font-weight: normal; }
+td { text-align: right; font-variant-numeric: tabular-nums; }
+@media print {
+    @page { size: A4 portrait; margin: 15mm; }
+    body { background: white; color: black; }
+    nav, footer, button, .print-instructions { display: none !important; }
+    .print-report { max-width: none; margin: 0; padding: 0; }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    h1, caption { break-after: avoid; }
+}

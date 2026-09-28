@@ -1,4 +1,4 @@
-@model List<DietPlan>
+@model List<PlanViewModel>
 @{ ViewData["Title"] = "My Diets"; }
 <section class="dashboard-heading">
     <h1>@ViewData["Title"]</h1>
@@ -21,9 +21,9 @@ else
         @foreach (var plan in Model)
         {
             <tr>
-                <td>@plan.PlanName</td><td>@plan.Trainer.FullName</td>
+                <td>@plan.PlanName</td><td>@plan.TrainerName</td>
                 <td>@plan.StartDate.ToString("yyyy-MM-dd") &ndash; @plan.EndDate.ToString("yyyy-MM-dd")</td>
-                <td><span class="badge @(plan.Status == PlanStatus.Active ? "bg-success" : "bg-secondary")">@plan.Status</span></td>
+                <td><span class="badge @plan.StatusCss">@plan.Status</span></td>
                 <td><a asp-action="Details" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-primary">View plan</a></td>
             </tr>
         }

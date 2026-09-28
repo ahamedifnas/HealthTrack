@@ -1,0 +1,25 @@
+@model HealthTrack.ViewComponents.NavigationViewModel
+<div class="d-flex flex-wrap justify-content-between flex-grow-1 gap-2">
+    <ul class="navbar-nav flex-row flex-wrap gap-3">
+        @if (Model.ShowNotifications)
+        {
+            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">Notifications <span class="badge bg-success" aria-label="Unread notifications">@Model.UnreadNotifications</span></a></li>
+        }
+        @foreach (var link in Model.Links)
+        {
+            <li class="nav-item"><a class="nav-link text-dark" asp-controller="@link.Controller" asp-action="@link.Action">@link.Label</a></li>
+        }
+    </ul>
+    <ul class="navbar-nav flex-row flex-wrap gap-3">
+        @if (Model.IsAuthenticated)
+        {
+            <li class="nav-item"><span class="nav-link text-dark">Hello, @Model.FullName!</span></li>
+            <li class="nav-item"><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="nav-link btn btn-link text-dark">Logout</button></form></li>
+        }
+        else
+        {
+            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a></li>
+            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a></li>
+        }
+    </ul>
+</div>

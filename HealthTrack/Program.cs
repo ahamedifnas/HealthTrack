@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => options.Filters.Add<ViewPresentationFilter>())
+    .AddViewOptions(options => options.HtmlHelperOptions.ClientValidationEnabled = false);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("DefaultConnection is required.")));
@@ -45,6 +46,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 builder.Services.AddScoped<PlanAccess>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<AdminDashboardData>();
+builder.Services.AddSingleton<AppointmentClock>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(FeaturePolicies.Trainer, policy => policy.RequireRole(AppRoles.Trainer)
@@ -54,6 +59,13 @@ builder.Services.AddAuthorization(options =>
 });
 
 var app = builder.Build();
+
+if (builder.Configuration.GetValue<bool>("Assignment:Run"))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    await DevelopmentAssignment.RunAsync(scope.ServiceProvider, app.Configuration, app.Environment);
+    return;
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

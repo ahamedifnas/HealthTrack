@@ -1,0 +1,32 @@
+@model List<HealthTrack.Models.Admin.TrainerListItem>
+@{ ViewData["Title"] = "Trainers"; }
+<section class="dashboard-heading"><h1>Trainers</h1><p class="mb-0">Create trainer accounts and manage their access.</p></section>
+<a asp-action="Create" class="btn btn-primary mb-3">Create Trainer</a>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">No trainer accounts yet.</div>
+}
+else
+{
+    <div class="card dashboard-card"><div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead><tr><th>Full name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var trainer in Model)
+            {
+                <tr>
+                    <td>@trainer.FullName</td><td>@trainer.Email</td>
+                    <td><span class="badge @trainer.StatusCss">@trainer.StatusLabel</span></td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form asp-action="SetActive" asp-route-id="@trainer.Id" method="post" class="d-inline">
+                            <input type="hidden" name="isActive" value="@trainer.NextActiveValue" />
+                            <button type="submit" class="btn btn-sm @trainer.StatusActionCss">@trainer.StatusAction</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div></div>
+}

@@ -1,22 +1,19 @@
 @model HealthTrack.Models.Dashboard.AdminDashboardViewModel
-@{
-    ViewData["Title"] = "Admin Dashboard";
-    var counts = new[]
-    {
-        (Title: "Total Users", Value: Model.TotalUsers),
-        (Title: "Total Clients", Value: Model.TotalClients),
-        (Title: "Total Trainers", Value: Model.TotalTrainers),
-        (Title: "Active Users", Value: Model.ActiveUsers)
-    };
-}
+@{ ViewData["Title"] = "Admin Dashboard"; }
 <section class="dashboard-heading">
     <p class="dashboard-eyebrow">HealthTrack overview</p>
-    <h1>Admin Dashboard</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <h1>Admin Dashboard</h1>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="#trainer-client-assignment" class="btn btn-outline-success btn-lg">Assign Client to Trainer</a>
+            <a asp-controller="AdminTrainers" asp-action="Create" class="btn btn-success btn-lg">+ Add Trainer</a>
+        </div>
+    </div>
     <p class="mb-0">An overview of the people using HealthTrack.</p>
 </section>
 <p class="text-muted">User counts come from Identity. Active users are accounts marked active, including users who are offline.</p>
 <div class="row g-4">
-    @foreach (var count in counts)
+    @foreach (var count in Model.Metrics)
     {
         <div class="col-12 col-sm-6 col-xl-3">
             <section class="card dashboard-card h-100">
@@ -30,20 +27,99 @@
     <div class="col-12 col-lg-6">
         <section class="card dashboard-card h-100">
             <div class="card-body">
-                <span class="badge dashboard-badge mb-3">Coming soon</span>
                 <h2 class="h5">Total Appointments</h2>
-                <p class="dashboard-value">—</p>
-                <p class="text-muted mb-0">Appointment totals will be available in a later phase.</p>
+                <p class="dashboard-value" data-testid="total-appointments">@Model.TotalAppointments</p>
+                <a asp-controller="Admin" asp-action="Appointments">View all appointments</a>
             </div>
         </section>
     </div>
     <div class="col-12 col-lg-6">
         <section class="card dashboard-card h-100">
             <div class="card-body">
-                <span class="badge dashboard-badge mb-3">Coming soon</span>
-                <h2 class="h5">System Activity</h2>
-                <p class="text-muted mb-0">System activity information will be available in a later phase.</p>
+                <span class="badge dashboard-badge mb-3">Administration</span>
+                <h2 class="h5">Manage HealthTrack</h2>
+                <a asp-controller="Progress" asp-action="Summary" class="btn btn-outline-success mb-2">Health summary</a>
+                <div class="d-flex flex-wrap gap-2"><a asp-controller="Admin" asp-action="Clients" class="btn btn-outline-primary">Clients</a><a asp-controller="Admin" asp-action="Users" class="btn btn-outline-primary">Users</a></div>
             </div>
         </section>
     </div>
 </div>
+
+<section class="mt-4" aria-labelledby="trainer-list-heading">
+    <h2 id="trainer-list-heading" class="h4">Trainers</h2>
+    @if (Model.Trainers.Count == 0)
+    {
+        <div class="alert alert-info">No trainer accounts yet. Use + Add Trainer to create one.</div>
+    }
+    else
+    {
+        <div class="card dashboard-card">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0" aria-labelledby="trainer-list-heading">
+                    <thead>
+                        <tr><th scope="col">Full Name</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col">Created Date</th><th scope="col">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var trainer in Model.Trainers)
+                        {
+                            <tr>
+                                <td>@trainer.FullName</td>
+                                <td>@trainer.Email</td>
+                                <td><span class="badge @trainer.StatusCss">@trainer.StatusLabel</span></td>
+                                <td><time datetime="@trainer.CreatedAt.ToString("O")">@trainer.CreatedAt.ToString("yyyy-MM-dd")</time></td>
+                                <td class="text-nowrap">
+                                    <a asp-controller="AdminTrainers" asp-action="Edit" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-success">Edit</a>
+                                    <form asp-controller="AdminTrainers" asp-action="SetActive" asp-route-id="@trainer.Id" method="post" class="d-inline">
+                                        <input type="hidden" name="isActive" value="@trainer.NextActiveValue" />
+                                        <button type="submit" class="btn btn-sm @trainer.StatusActionCss">@trainer.StatusAction</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</section>
+
+<section class="card dashboard-card mt-4" id="trainer-client-assignment" aria-labelledby="assignment-heading">
+    <div class="card-body">
+        <h2 class="h4" id="assignment-heading">Trainer-Client Assignment</h2>
+        <p class="text-muted">Assign an active client to an active trainer. Each client can have one trainer.</p>
+        <form asp-controller="AdminAssignments" asp-action="Assign" method="post" class="row g-3 align-items-end">
+            <div class="col-12 col-md-5">
+                <label asp-for="Assignment.ClientId" class="form-label"></label>
+                <select asp-for="Assignment.ClientId" asp-items="Model.AssignmentClients" class="form-select"><option value="">Select an active client</option></select>
+                <span asp-validation-for="Assignment.ClientId" class="text-danger"></span>
+            </div>
+            <div class="col-12 col-md-5">
+                <label asp-for="Assignment.TrainerId" class="form-label"></label>
+                <select asp-for="Assignment.TrainerId" asp-items="Model.AssignmentTrainers" class="form-select"><option value="">Select an active trainer</option></select>
+                <span asp-validation-for="Assignment.TrainerId" class="text-danger"></span>
+            </div>
+            <div class="col-12 col-md-2"><button type="submit" class="btn btn-success">Assign Client</button></div>
+        </form>
+        @if (Model.AssignmentClients.Count == 0 || Model.AssignmentTrainers.Count == 0)
+        {
+            <p class="text-muted mt-3 mb-0">An active Client and an active Trainer account are needed to create an assignment.</p>
+        }
+        <h3 class="h5 mt-4">Current assignments</h3>
+        @if (Model.Assignments.Count == 0)
+        {
+            <p class="text-muted mb-0">No clients have been assigned yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive"><table class="table table-striped align-middle mb-0">
+                <thead><tr><th scope="col">Client</th><th scope="col">Trainer</th><th scope="col">Assigned (UTC)</th></tr></thead>
+                <tbody>
+                @foreach (var assignment in Model.Assignments)
+                {
+                    <tr><td>@assignment.ClientName <span class="small text-muted">(@assignment.ClientEmail)</span></td><td>@assignment.TrainerName <span class="small text-muted">(@assignment.TrainerEmail)</span></td><td>@assignment.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td></tr>
+                }
+                </tbody>
+            </table></div>
+        }
+    </div>
+</section>

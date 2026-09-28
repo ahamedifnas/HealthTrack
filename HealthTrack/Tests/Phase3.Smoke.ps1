@@ -92,6 +92,10 @@ try {
     $exerciseFields.ExerciseName='Brisk walking'
     $null = Submit $t "/TrainerWorkouts/EditExercise/$exercise" "/TrainerWorkouts/EditExercise/$exercise" $exerciseFields
     Assert ((Query 'SELECT ExerciseName FROM WorkoutExercises WHERE Id=@id' @{id=$exercise}) -eq 'Brisk walking') 'Exercise add and edit work'
+    $picker=Get-Page $c "/Workouts/Log?planId=$workout"
+    Assert ($picker.Content.Contains('Load exercises') -and $picker.Content.Contains('Brisk walking') -and -not $picker.Content.Contains('<script')) 'Workout exercise selection works through a server-rendered GET form'
+    $confirmation=Get-Page $t "/TrainerWorkouts/DeleteExercise/$exercise"
+    Assert ($confirmation.Content.Contains('Confirm') -and (Query 'SELECT COUNT(*) FROM WorkoutExercises WHERE Id=@id' @{id=$exercise}) -eq 1) 'Delete confirmation GET preserves the exercise'
     $planFields.PlanName="$prefix edited workout"
     $null = Submit $t "/TrainerWorkouts/Edit/$workout" "/TrainerWorkouts/Edit/$workout" $planFields
     Assert ((Query 'SELECT PlanName FROM WorkoutPlans WHERE Id=@id' @{id=$workout}) -eq $planFields.PlanName) 'Workout plan edit works'

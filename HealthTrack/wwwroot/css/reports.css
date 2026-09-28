@@ -1,0 +1,15 @@
+.health-report td { overflow-wrap: anywhere; }
+@media print {
+    @page { size: landscape; margin: 12mm; }
+    body { background: white !important; color: black !important; margin: 0; font-size: 10pt; }
+    body > header, body > footer, .report-controls, main > .alert { display: none !important; }
+    .container { max-width: none !important; width: 100%; padding: 0; }
+    .health-report .dashboard-heading { background: none !important; color: black !important; padding: 0; margin: 0 0 1rem; }
+    .health-report .card { box-shadow: none; border: 1px solid #999; break-inside: avoid; }
+    .health-report .table-responsive { overflow: visible; }
+    .health-report table { width: 100%; font-size: 9pt; }
+    .health-report thead { display: table-header-group; }
+    .health-report tr { break-inside: avoid; }
+    .health-report h2 { break-after: avoid; }
+    .health-report .col-sm-6 { width: 25%; }
+}

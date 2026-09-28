@@ -1,0 +1,29 @@
+@model HealthTrack.Models.Reports.ReportViewModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HealthTrack - Printable Admin Report</title>
+    <link rel="stylesheet" href="~/css/admin-report-print.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="print-report">
+        <h1>HealthTrack Admin Report</h1>
+        <p>Generated @Model.GeneratedAt.ToString("yyyy-MM-dd HH:mm") UTC</p>
+        <p class="print-instructions">Use Ctrl+P to print or save as PDF.</p>
+        <p>@Model.Scope</p>
+        <table>
+            <caption>System-wide report totals</caption>
+            <thead><tr><th scope="col">Metric</th><th scope="col">Total</th></tr></thead>
+            <tbody>
+                @foreach (var metric in Model.PrintMetrics)
+                {
+                    <tr><th scope="row">@metric.Label</th><td>@metric.Value</td></tr>
+                }
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

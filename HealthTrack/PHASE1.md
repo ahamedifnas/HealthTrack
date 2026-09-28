@@ -22,15 +22,15 @@ Migrations are applied explicitly, not automatically at application startup. Sta
 Set these values locally before starting the application, replacing both placeholders:
 
 ```powershell
-dotnet user-secrets set "DevelopmentAdmin:Email" "admin@healthtrack.local"
-dotnet user-secrets set "DevelopmentAdmin:Password" "<your unique strong password>"
+dotnet user-secrets set "Admin:Email" "admin@healthtrack.com"
+dotnet user-secrets set "Admin:Password" "<your unique strong password>"
 ```
 
-The project already has a UserSecretsId. User-secrets are stored outside the repository and are for development only. Alternatively, set `DevelopmentAdmin__Email` and `DevelopmentAdmin__Password` environment variables in the process running the app.
+The project already has a UserSecretsId. User-secrets are stored outside the repository and are for development only. Alternatively, set `Admin__Email` and `Admin__Password` environment variables in the process running the app.
 
 The password must contain at least eight characters with uppercase, lowercase, a digit and a non-alphanumeric character. Never use the literal placeholder above.
 
-When both values are absent, admin seeding is skipped. When only one is provided, startup reports a configuration error. Seeding runs only in Development and does not reset an existing admin password. A matching non-admin account is never promoted automatically: choose an unused email. Changing the seed email can create another admin, so keep one configured email for the development account.
+When both values are absent, admin seeding is skipped. When only one is provided, startup reports a configuration error. Seeding runs only in Development. It creates an active HealthTrack Admin account or reactivates the existing account, resets its password through Identity using Admin:Password, clears lockout, and ensures the Admin role. Existing Client or Trainer accounts are never changed. Changing the seed email can create another admin, so keep one configured email for the development account.
 
 ## Browser checks
 

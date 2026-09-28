@@ -47,7 +47,7 @@ try {
     $fields.IsActive = 'false'
     $fields.__RequestVerificationToken = Get-Token $page.Content
     $page = Post-Form '/Account/Register' $fields
-    Assert ($page.Content.Contains('Hello, ' + $email)) 'Registration signs in'
+    Assert ($page.Content.Contains('Hello, Phase One Test!')) 'Registration signs in'
     Assert ((Query 'SELECT r.Name FROM AspNetUserRoles ur JOIN AspNetUsers u ON u.Id=ur.UserId JOIN AspNetRoles r ON r.Id=ur.RoleId WHERE u.Email=@email') -eq 'Client') 'Forged Admin role ignored; Client assigned'
     Assert ((Query 'SELECT IsActive FROM AspNetUsers WHERE Email=@email') -eq $true) 'Profile overposting ignored'
     Assert ((Query 'SELECT PasswordHash FROM AspNetUsers WHERE Email=@email') -ne $password) 'Password stored as hash'
@@ -55,7 +55,7 @@ try {
     catch { if ($null -eq $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 400) { throw } }
     Write-Output 'PASS: Logout requires antiforgery token'
     $page = Post-Form '/Account/Logout' @{ __RequestVerificationToken=(Get-Token $page.Content) }
-    Assert (-not $page.Content.Contains('Hello, ' + $email)) 'Logout clears sign-in'
+    Assert (-not $page.Content.Contains('Hello, Phase One Test!')) 'Logout clears sign-in'
     $page = Get-Page '/Account/Register'
     $fields.__RequestVerificationToken = Get-Token $page.Content
     $page = Post-Form '/Account/Register' $fields
@@ -68,10 +68,10 @@ try {
     $login.ReturnUrl = 'https://example.com'
     $login.__RequestVerificationToken = Get-Token $page.Content
     $page = Post-Form '/Account/Login' $login
-    Assert ($page.Content.Contains('Hello, ' + $email)) 'Login succeeds and external return URL is ignored'
+    Assert ($page.Content.Contains('Hello, Phase One Test!')) 'Login succeeds and external return URL is ignored'
     $null = Query 'UPDATE AspNetUsers SET IsActive=0 WHERE Email=@email'
     $page = Get-Page '/'
-    Assert (-not $page.Content.Contains('Hello, ' + $email)) 'Inactive user cookie rejected'
+    Assert (-not $page.Content.Contains('Hello, Phase One Test!')) 'Inactive user cookie rejected'
     $page = Get-Page '/Account/Login'
     $login.__RequestVerificationToken = Get-Token $page.Content
     $page = Post-Form '/Account/Login' $login
@@ -84,3 +84,4 @@ finally {
     $null = Query 'DELETE FROM AspNetUsers WHERE Email=@email'
     $database.Dispose()
 }
+

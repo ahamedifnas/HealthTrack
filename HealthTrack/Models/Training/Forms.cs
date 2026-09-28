@@ -51,6 +51,7 @@ public class MealForm
 
 public class WorkoutLogForm
 {
+    [ValidateNever] public string SelectedPlanName { get; set; } = string.Empty;
     [Range(1, int.MaxValue), Display(Name = "Workout plan")] public int WorkoutPlanId { get; set; }
     [Display(Name = "Exercise (optional)")] public int? WorkoutExerciseId { get; set; }
     [DataType(DataType.Date), Display(Name = "Workout date")] public DateOnly WorkoutDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);

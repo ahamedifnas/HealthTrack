@@ -1,24 +1,22 @@
-@model WorkoutPlan
+@model PlanViewModel
 @{
     ViewData["Title"] = Model.PlanName;
-    ViewData["CanManage"] = true;
 }
-<section class="dashboard-heading"><h1>@Model.PlanName</h1><p>Client: @Model.Client.FullName</p></section>
+<section class="dashboard-heading"><h1>@Model.PlanName</h1><p>Client: @Model.ClientName</p></section>
 <div class="card dashboard-card mb-4"><div class="card-body">
     <p class="text-break">@Model.Description</p>
     <p>@Model.StartDate.ToString("yyyy-MM-dd") &ndash; @Model.EndDate.ToString("yyyy-MM-dd")
-    <span class="badge @(Model.Status == PlanStatus.Active ? "bg-success" : "bg-secondary")">@Model.Status</span></p>
+    <span class="badge @Model.StatusCss">@Model.Status</span></p>
     
     <div class="d-flex gap-2 flex-wrap">
     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit plan</a>
     <a asp-action="AddExercise" asp-route-planId="@Model.Id" class="btn btn-outline-primary">Add exercise</a>
     <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post">
-        <input type="hidden" name="status" value="@(Model.Status == PlanStatus.Active ? PlanStatus.Inactive : PlanStatus.Active)" />
-        <button type="submit" class="btn btn-outline-secondary">@(Model.Status == PlanStatus.Active ? "Deactivate" : "Activate")</button>
+        <input type="hidden" name="status" value="@Model.NextStatus" />
+        <button type="submit" class="btn btn-outline-secondary">@Model.StatusAction</button>
     </form>
     <a asp-action="Logs" asp-route-clientId="@Model.ClientId" class="btn btn-outline-secondary">Client workout logs</a>
     <a asp-action="Index" class="btn btn-outline-secondary">Back to plans</a>
     </div>
 </div></div>
-<partial name="_WorkoutExercises" model="Model.Exercises" />
-
+<partial name="_WorkoutExercises" model="Model" />

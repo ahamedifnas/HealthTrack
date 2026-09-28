@@ -1,0 +1,47 @@
+@model HealthTrack.Models.Reports.ReportViewModel
+@{ ViewData["Title"] = Model.Title; }
+<link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
+<article class="health-report">
+    <div class="report-controls mb-3">
+        @if (Model.IsAdminReport)
+        {
+            <a asp-controller="AdminReports" asp-action="Print" class="btn btn-success">Printable Report</a>
+            <a asp-controller="Dashboard" asp-action="Admin" class="btn btn-outline-success">Back to Dashboard</a>
+            <p class="mt-2 text-muted">Open the printable report and use Ctrl+P to print or save as PDF.</p>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-outline-success">Choose Client Report</a>
+            <span class="ms-3 text-muted">Use your browser's Print command (Ctrl+P / Cmd+P) to print or save as PDF.</span>
+        }
+    </div>
+    <div class="dashboard-heading">
+        <h1>@Model.Title</h1>
+        @if (Model.ClientName is not null) { <h2 class="h4">@Model.ClientName</h2> }
+        <p>Generated @Model.GeneratedAt.ToString("yyyy-MM-dd HH:mm") UTC</p>
+    </div>
+    <p>@Model.Scope</p>
+    <div class="row g-3 mb-4">
+        @foreach (var metric in Model.Metrics)
+        {
+            <div class="col-sm-6 col-lg-3"><div class="card h-100"><div class="card-body">
+                <h2 class="h6">@metric.Label</h2><p class="h4 mb-0">@metric.Value</p>
+            </div></div></div>
+        }
+    </div>
+    @foreach (var table in Model.Tables)
+    {
+        <section class="mb-4">
+            <h2 class="h4">@table.Title</h2>
+            @if (table.Rows.Count == 0) { <p class="text-muted">No records available.</p> }
+            else
+            {
+                <div class="table-responsive"><table class="table table-striped table-bordered">
+                    <caption class="visually-hidden">@table.Title</caption>
+                    <thead><tr>@foreach (var column in table.Columns) { <th scope="col">@column</th> }</tr></thead>
+                    <tbody>@foreach (var row in table.Rows) { <tr>@foreach (var cell in row) { <td>@cell</td> }</tr> }</tbody>
+                </table></div>
+            }
+        </section>
+    }
+</article>

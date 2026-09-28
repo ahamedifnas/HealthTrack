@@ -1,0 +1,20 @@
+@model HealthTrack.Models.Admin.EditTrainerViewModel
+@{ ViewData["Title"] = "Edit Trainer"; }
+<section class="dashboard-heading"><h1>Edit Trainer</h1><p class="mb-0">Update the trainer's name and sign-in email.</p></section>
+<div class="row"><div class="col-12 col-lg-8"><div class="card dashboard-card"><div class="card-body">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label"></label>
+            <input asp-for="FullName" class="form-control" autocomplete="name" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="off" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <button class="btn btn-primary" type="submit">Save changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div></div></div></div>

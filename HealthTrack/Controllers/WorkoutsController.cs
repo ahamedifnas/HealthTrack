@@ -16,13 +16,13 @@ public class WorkoutsController(ApplicationDbContext database) : Controller
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private IQueryable<WorkoutPlan> MyPlans => database.WorkoutPlans.Where(x => x.ClientId == UserId);
 
-    public async Task<IActionResult> Index() => View(await MyPlans.Include(x => x.Trainer)
-        .OrderByDescending(x => x.CreatedAt).ToListAsync());
+    public async Task<IActionResult> Index() => View((await MyPlans.Include(x => x.Trainer)
+        .OrderByDescending(x => x.CreatedAt).ToListAsync()).Select(x => PlanViewModel.From(x, false)).ToList());
 
     public async Task<IActionResult> Details(int id)
     {
         var plan = await MyPlans.Include(x => x.Trainer).Include(x => x.Exercises).FirstOrDefaultAsync(x => x.Id == id);
-        return plan is null ? NotFound() : View(plan);
+        return plan is null ? NotFound() : View(PlanViewModel.From(plan, false));
     }
 
     [HttpGet]
@@ -60,15 +60,17 @@ public class WorkoutsController(ApplicationDbContext database) : Controller
         return RedirectToAction(nameof(History));
     }
 
-    public async Task<IActionResult> History() => View(await database.WorkoutLogs
+    public async Task<IActionResult> History() { ViewData["CanLog"] = true; return View(await database.WorkoutLogs
         .Include(x => x.WorkoutPlan).Include(x => x.WorkoutExercise).Where(x => x.ClientId == UserId)
-        .OrderByDescending(x => x.WorkoutDate).ThenByDescending(x => x.Id).ToListAsync());
+        .OrderByDescending(x => x.WorkoutDate).ThenByDescending(x => x.Id).ToListAsync()); }
 
     private async Task Populate(WorkoutLogForm model)
     {
         model.Plans = await MyPlans.Where(x => x.Status == PlanStatus.Active).OrderBy(x => x.PlanName)
             .Select(x => new SelectListItem(x.PlanName, x.Id.ToString())).ToListAsync();
         if (model.WorkoutPlanId == 0 && model.Plans.Count > 0) model.WorkoutPlanId = int.Parse(model.Plans[0].Value);
+        foreach (var item in model.Plans) item.Selected = item.Value == model.WorkoutPlanId.ToString();
+        model.SelectedPlanName = model.Plans.FirstOrDefault(x => x.Selected)?.Text ?? string.Empty;
         model.Exercises = await database.WorkoutExercises.Where(x => x.WorkoutPlanId == model.WorkoutPlanId && MyPlans.Any(p => p.Id == x.WorkoutPlanId))
             .OrderBy(x => x.ExerciseName).Select(x => new SelectListItem(x.ExerciseName, x.Id.ToString())).ToListAsync();
     }

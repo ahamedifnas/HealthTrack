@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HealthTrack.Data;
+using HealthTrack.Models;
 using HealthTrack.Models.Training;
 using HealthTrack.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,18 +12,17 @@ namespace HealthTrack.Controllers;
 
 [Authorize(Policy = FeaturePolicies.Trainer)]
 [AutoValidateAntiforgeryToken]
-public class TrainerDietsController(ApplicationDbContext database, PlanAccess access) : Controller
+public class TrainerDietsController(ApplicationDbContext database, PlanAccess access, NotificationService notifications) : Controller
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private IQueryable<DietPlan> OwnedPlans => access.Diets(UserId);
 
-    public async Task<IActionResult> Index() =>
-        View(await OwnedPlans.Include(x => x.Client).OrderByDescending(x => x.CreatedAt).ToListAsync());
+    public async Task<IActionResult> Index() => View((await OwnedPlans.Include(x => x.Client).OrderByDescending(x => x.CreatedAt).ToListAsync()).Select(x => PlanViewModel.From(x, true)).ToList());
 
     public async Task<IActionResult> Details(int id)
     {
         var plan = await OwnedPlans.Include(x => x.Client).Include(x => x.Meals).FirstOrDefaultAsync(x => x.Id == id);
-        return plan is null ? NotFound() : View(plan);
+        return plan is null ? NotFound() : View(PlanViewModel.From(plan, true));
     }
 
     [HttpGet]
@@ -52,6 +52,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
             Description = model.Description, StartDate = model.StartDate, EndDate = model.EndDate, DailyCalories = model.DailyCalories
         };
         database.DietPlans.Add(plan);
+        notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Diet, assigned: true);
         await database.SaveChangesAsync();
         TempData["Success"] = "Diet plan created.";
         return RedirectToAction(nameof(Details), new { id = plan.Id });
@@ -85,6 +86,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
             ViewData["Title"] = "Edit diet plan";
             return View("PlanForm", model);
         }
+        notifications.Plan(plan.ClientId, model.PlanName.Trim(), NotificationType.Diet);
         plan.PlanName = model.PlanName.Trim();
         plan.Description = model.Description;
         plan.StartDate = model.StartDate;
@@ -101,6 +103,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
         var plan = await OwnedPlans.FirstOrDefaultAsync(x => x.Id == id);
         if (plan is null) return NotFound();
         if (!Enum.IsDefined(status)) return BadRequest();
+        if (plan.Status != status) notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Diet);
         plan.Status = status;
         await database.SaveChangesAsync();
         TempData["Success"] = $"Plan is now {status.ToString().ToLowerInvariant()}.";
@@ -126,6 +129,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
             ViewData["Title"] = "Add meal";
             return View("MealForm", model);
         }
+        await NotifyPlanUpdate(planId);
         database.DietMeals.Add(new DietMeal
         {
             DietPlanId = planId,
@@ -176,6 +180,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
             ViewData["Title"] = "Edit meal";
             return View("MealForm", model);
         }
+        await NotifyPlanUpdate(item.DietPlanId);
         item.MealType = model.MealType;
         item.FoodName = model.FoodName;
         item.Quantity = model.Quantity;
@@ -189,16 +194,32 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
         return RedirectToAction(nameof(Details), new { id = item.DietPlanId });
     }
 
+    [HttpGet, ActionName("DeleteMeal")]
+    public async Task<IActionResult> ConfirmDeleteMeal(int id)
+    {
+        var item = await database.DietMeals.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.DietPlanId));
+        return item is null ? NotFound() : View("Confirm", new HealthTrack.Models.ConfirmationViewModel(
+            "Delete meal", $"Delete {item.FoodName}? Existing meal logs will be kept.", "DeleteMeal", id, "Details", item.DietPlanId));
+    }
+
     [HttpPost]
     public async Task<IActionResult> DeleteMeal(int id)
     {
         var item = await database.DietMeals
             .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.DietPlanId));
         if (item is null) return NotFound();
+        await NotifyPlanUpdate(item.DietPlanId);
         database.DietMeals.Remove(item);
         await database.SaveChangesAsync();
         TempData["Success"] = "Meal deleted. Existing logs have been preserved.";
         return RedirectToAction(nameof(Details), new { id = item.DietPlanId });
+    }
+
+    private async Task NotifyPlanUpdate(int planId)
+    {
+        var plan = await OwnedPlans.SingleAsync(x => x.Id == planId);
+        notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Diet);
     }
 
     private async Task PopulateClients(PlanForm model, string? clientId = null)
