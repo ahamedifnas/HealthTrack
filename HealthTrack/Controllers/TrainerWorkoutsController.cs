@@ -98,11 +98,11 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
     }
 
     [HttpPost]
-    public async Task<IActionResult> SetStatus(int id, PlanStatus status)
+    public async Task<IActionResult> SetStatus(int id, [Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] PlanStatus status)
     {
         var plan = await OwnedPlans.FirstOrDefaultAsync(x => x.Id == id);
         if (plan is null) return NotFound();
-        if (!Enum.IsDefined(status)) return BadRequest();
+        if (!ModelState.IsValid || !Enum.IsDefined(status)) return BadRequest();
         if (plan.Status != status) notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Workout);
         plan.Status = status;
         await database.SaveChangesAsync();

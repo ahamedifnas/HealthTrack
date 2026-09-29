@@ -102,6 +102,13 @@ try {
     $fields.FullName='Valid name'; $fields.Email='invalid-email'
     $page=Submit $anonymous '/Account/Register' '/Account/Register' $fields
     Assert ($page.Content.Contains('not a valid e-mail address')) 'Invalid email rejected server-side'
+    foreach($invalid in @(@{WeightKg='-1'}, @{HeightCm='-1'}, @{CaloriesBurned='-1'})) {
+        $measurement=@{MeasurementDate=$today;WeightKg='80';HeightCm='180';CaloriesBurned='100'}
+        foreach($key in $invalid.Keys) { $measurement[$key]=$invalid[$key] }
+        $null=Submit $c '/Measurements/Create' '/Measurements/Create' $measurement
+        Assert ((Query 'SELECT COUNT(*) FROM HealthMeasurements WHERE ClientId=@id' @{id=$client.Id}) -eq 0) "Negative $($invalid.Keys) rejected without saving"
+    }
+    ExpectStatus 400 { Invoke-WebRequest -UseBasicParsing -Uri "$BaseUrl/Measurements/TargetWeight" -WebSession $c -Method Post -Body @{TargetWeight='70';__RequestVerificationToken='tampered'} } 'Tampered antiforgery token rejected'
     foreach($kind in @('Workout','Diet')) {
         $controller="Trainer${kind}s"
         $fields=@{ClientId=$client.Id;PlanName="$prefix $kind";DailyCalories=2000}
@@ -111,6 +118,11 @@ try {
         $null=Submit $t "/$controller/Create" "/$controller/Create" $fields
         $plan=Query "SELECT Id FROM ${kind}Plans WHERE ClientId=@id" @{id=$client.Id}
         Assert ($null -ne $plan) "Valid $kind plan remains usable"
+        $originalStatus=Query "SELECT Status FROM ${kind}Plans WHERE Id=@id" @{id=$plan}
+        foreach($invalidStatus in @(@{}, @{status='invalid'}, @{status='999'}, @{status=''})) {
+            ExpectStatus 400 { Submit $t "/$controller/Details/$plan" "/$controller/SetStatus/$plan" $invalidStatus } "Missing or invalid $kind status rejected"
+            Assert ((Query "SELECT Status FROM ${kind}Plans WHERE Id=@id" @{id=$plan}) -eq $originalStatus) "$kind status unchanged after invalid request"
+        }
         if($kind -eq 'Workout') {
             $null=Submit $c "/Workouts/Log?planId=$plan" '/Workouts/Log' @{WorkoutPlanId=$plan;DurationMinutes=10;CaloriesBurned=20}
             Assert ((Query 'SELECT COUNT(*) FROM WorkoutLogs WHERE ClientId=@id' @{id=$client.Id}) -eq 0) 'Omitted workout log date rejected'
@@ -141,6 +153,7 @@ finally {
     $null=Query @'
 DELETE FROM WorkoutLogs WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix);
 DELETE FROM MealLogs WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix);
+DELETE FROM HealthMeasurements WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix);
 DELETE FROM WorkoutPlans WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix);
 DELETE FROM DietPlans WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix);
 DELETE FROM TrainerClients WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix);
