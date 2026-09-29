@@ -11,7 +11,7 @@ namespace HealthTrack.Controllers;
 
 [Authorize(Policy = FeaturePolicies.Client)]
 [AutoValidateAntiforgeryToken]
-public class DietsController(ApplicationDbContext database) : Controller
+public class DietsController(ApplicationDbContext database, AppointmentClock clock) : Controller
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private IQueryable<DietPlan> MyPlans => database.DietPlans.Where(x => x.ClientId == UserId);
@@ -29,7 +29,7 @@ public class DietsController(ApplicationDbContext database) : Controller
     public async Task<IActionResult> Log(int? planId)
     {
         if (planId.HasValue && !await MyPlans.AnyAsync(x => x.Id == planId && x.Status == PlanStatus.Active)) return NotFound();
-        var model = new MealLogForm { DietPlanId = planId ?? 0 };
+        var model = new MealLogForm { DietPlanId = planId ?? 0, MealDate = DateOnly.FromDateTime(clock.Now) };
         await Populate(model);
         return View(model);
     }
@@ -40,7 +40,7 @@ public class DietsController(ApplicationDbContext database) : Controller
         var plan = await MyPlans.FirstOrDefaultAsync(x => x.Id == model.DietPlanId);
         if (plan is null) return NotFound();
         if (plan.Status != PlanStatus.Active) ModelState.AddModelError(string.Empty, "This plan is inactive and cannot receive new logs.");
-        if (model.MealDate < plan.StartDate || model.MealDate > plan.EndDate || model.MealDate > DateOnly.FromDateTime(DateTime.Today))
+        if (model.MealDate < plan.StartDate || model.MealDate > plan.EndDate || model.MealDate > DateOnly.FromDateTime(clock.Now))
             ModelState.AddModelError(nameof(model.MealDate), "Choose a date within the plan dates, no later than today.");
         if (!ModelState.IsValid)
         {

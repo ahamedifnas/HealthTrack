@@ -4,6 +4,8 @@ using HealthTrack.Models.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthTrack.Controllers;
 
@@ -25,9 +27,18 @@ public class AccountController(UserManager<ApplicationUser> users,
         };
         // Keep creation and the Client role assignment atomic.
         await using var transaction = await database.Database.BeginTransactionAsync();
-        var result = await users.CreateAsync(user, model.Password);
-        if (result.Succeeded)
-            result = await users.AddToRoleAsync(user, AppRoles.Client);
+        IdentityResult result;
+        try
+        {
+            result = await users.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+                result = await users.AddToRoleAsync(user, AppRoles.Client);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            ModelState.AddModelError(nameof(model.Email), "An account with this email is already taken.");
+            return View(model);
+        }
 
         if (!result.Succeeded)
         {

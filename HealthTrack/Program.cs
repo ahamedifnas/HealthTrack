@@ -2,12 +2,19 @@ using HealthTrack.Data;
 using HealthTrack.Models;
 using HealthTrack.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews(options => options.Filters.Add<ViewPresentationFilter>())
+builder.Services.AddControllersWithViews(options =>
+    {
+        options.Filters.Add<ViewPresentationFilter>();
+        options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        options.Filters.Add(new ResponseCacheAttribute { NoStore = true, Location = ResponseCacheLocation.None });
+    })
     .AddViewOptions(options => options.HtmlHelperOptions.ClientValidationEnabled = false);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
@@ -25,6 +32,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+// Refresh role claims and validate security stamps on every request, including existing cookies.
+builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -50,8 +59,10 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<AdminDashboardData>();
 builder.Services.AddSingleton<AppointmentClock>();
+builder.Services.AddExceptionHandler<SafeExceptionHandler>();
 builder.Services.AddAuthorization(options =>
 {
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
     options.AddPolicy(FeaturePolicies.Trainer, policy => policy.RequireRole(AppRoles.Trainer)
         .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin)));
     options.AddPolicy(FeaturePolicies.Client, policy => policy.RequireRole(AppRoles.Client)
@@ -68,9 +79,10 @@ if (builder.Configuration.GetValue<bool>("Assignment:Run"))
 }
 
 // Configure the HTTP request pipeline.
+// Never expose exception details to browser users, including in local Development.
+app.UseExceptionHandler("/Home/Error");
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -81,7 +93,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
+app.MapStaticAssets().AllowAnonymous();
 
 app.MapControllerRoute(
     name: "default",
@@ -92,7 +104,7 @@ app.MapControllerRoute(
 // Migrations are applied explicitly with dotnet ef database update before startup.
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    await IdentitySeeder.SeedAsync(scope.ServiceProvider, app.Configuration, app.Environment);
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider, app.Environment);
 }
 
 app.Run();

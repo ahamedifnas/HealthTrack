@@ -16,7 +16,9 @@ public class PlanAccess(ApplicationDbContext database)
     public IQueryable<ApplicationUser> Clients(string trainerId) =>
         database.TrainerClients.Where(x => x.TrainerId == trainerId)
             .Select(x => x.Client).Where(x => x.IsActive && database.UserRoles.Any(ur =>
-                ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Client)));
+                ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Client))
+                && !database.UserRoles.Any(ur => ur.UserId == x.Id && database.Roles.Any(r =>
+                    r.Id == ur.RoleId && (r.Name == AppRoles.Admin || r.Name == AppRoles.Trainer))));
 
     public IQueryable<WorkoutPlan> Workouts(string trainerId)
     {

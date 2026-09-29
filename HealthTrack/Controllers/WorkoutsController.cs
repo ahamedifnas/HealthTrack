@@ -11,7 +11,7 @@ namespace HealthTrack.Controllers;
 
 [Authorize(Policy = FeaturePolicies.Client)]
 [AutoValidateAntiforgeryToken]
-public class WorkoutsController(ApplicationDbContext database) : Controller
+public class WorkoutsController(ApplicationDbContext database, AppointmentClock clock) : Controller
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private IQueryable<WorkoutPlan> MyPlans => database.WorkoutPlans.Where(x => x.ClientId == UserId);
@@ -29,7 +29,7 @@ public class WorkoutsController(ApplicationDbContext database) : Controller
     public async Task<IActionResult> Log(int? planId)
     {
         if (planId.HasValue && !await MyPlans.AnyAsync(x => x.Id == planId && x.Status == PlanStatus.Active)) return NotFound();
-        var model = new WorkoutLogForm { WorkoutPlanId = planId ?? 0 };
+        var model = new WorkoutLogForm { WorkoutPlanId = planId ?? 0, WorkoutDate = DateOnly.FromDateTime(clock.Now) };
         await Populate(model);
         return View(model);
     }
@@ -40,7 +40,7 @@ public class WorkoutsController(ApplicationDbContext database) : Controller
         var plan = await MyPlans.FirstOrDefaultAsync(x => x.Id == model.WorkoutPlanId);
         if (plan is null) return NotFound();
         if (plan.Status != PlanStatus.Active) ModelState.AddModelError(string.Empty, "This plan is inactive and cannot receive new logs.");
-        if (model.WorkoutDate < plan.StartDate || model.WorkoutDate > plan.EndDate || model.WorkoutDate > DateOnly.FromDateTime(DateTime.Today))
+        if (model.WorkoutDate < plan.StartDate || model.WorkoutDate > plan.EndDate || model.WorkoutDate > DateOnly.FromDateTime(clock.Now))
             ModelState.AddModelError(nameof(model.WorkoutDate), "Choose a date within the plan dates, no later than today.");
         if (model.WorkoutExerciseId.HasValue && !await database.WorkoutExercises.AnyAsync(x => x.Id == model.WorkoutExerciseId && x.WorkoutPlanId == plan.Id))
             ModelState.AddModelError(nameof(model.WorkoutExerciseId), "Choose an exercise belonging to this plan.");

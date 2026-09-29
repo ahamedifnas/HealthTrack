@@ -71,6 +71,7 @@ public class AdminTrainersController(UserManager<ApplicationUser> users,
     [HttpGet]
     public async Task<IActionResult> Edit(string id)
     {
+        if (string.IsNullOrWhiteSpace(id)) return NotFound();
         var trainer = await users.FindByIdAsync(id);
         if (trainer is null || !await users.IsInRoleAsync(trainer, AppRoles.Trainer)) return NotFound();
         return View(new EditTrainerViewModel { Id = trainer.Id, FullName = trainer.FullName, Email = trainer.Email ?? string.Empty });
@@ -79,6 +80,7 @@ public class AdminTrainersController(UserManager<ApplicationUser> users,
     [HttpPost]
     public async Task<IActionResult> Edit(string id, EditTrainerViewModel model)
     {
+        if (string.IsNullOrWhiteSpace(id)) return NotFound();
         var trainer = await users.FindByIdAsync(id);
         if (trainer is null || !await users.IsInRoleAsync(trainer, AppRoles.Trainer)) return NotFound();
         model.Id = trainer.Id;
@@ -112,6 +114,7 @@ public class AdminTrainersController(UserManager<ApplicationUser> users,
     public async Task<IActionResult> SetActive(string id, [BindRequired] bool isActive)
     {
         if (!ModelState.IsValid) return BadRequest();
+        if (string.IsNullOrWhiteSpace(id)) return NotFound();
         var trainer = await users.FindByIdAsync(id);
         if (trainer is null || !await users.IsInRoleAsync(trainer, AppRoles.Trainer)) return NotFound();
         if (trainer.Id == users.GetUserId(User) && !isActive)

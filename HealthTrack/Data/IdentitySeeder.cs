@@ -5,8 +5,7 @@ namespace HealthTrack.Data;
 
 public static class IdentitySeeder
 {
-    public static async Task SeedAsync(IServiceProvider services, IConfiguration configuration,
-        IHostEnvironment environment)
+    public static async Task SeedAsync(IServiceProvider services, IHostEnvironment environment)
     {
         var roles = services.GetRequiredService<RoleManager<IdentityRole>>();
         foreach (var role in new[] { AppRoles.Admin, AppRoles.Trainer, AppRoles.Client })
@@ -17,6 +16,9 @@ public static class IdentitySeeder
 
         if (!environment.IsDevelopment()) return;
 
+        // Read only user-secrets: appsettings, command-line and environment values cannot seed a password.
+        using var configuration = new ConfigurationManager();
+        configuration.AddUserSecrets(typeof(IdentitySeeder).Assembly, optional: true);
         var email = configuration["Admin:Email"]?.Trim();
         var password = configuration["Admin:Password"];
         if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(password)) return;

@@ -26,7 +26,7 @@ dotnet user-secrets set "Admin:Email" "admin@healthtrack.com"
 dotnet user-secrets set "Admin:Password" "<your unique strong password>"
 ```
 
-The project already has a UserSecretsId. User-secrets are stored outside the repository and are for development only. Alternatively, set `Admin__Email` and `Admin__Password` environment variables in the process running the app.
+The project already has a UserSecretsId. User-secrets are stored outside the repository and are for development only. Development Admin seeding reads these values exclusively from user-secrets; appsettings, environment variables and command-line credentials are ignored.
 
 The password must contain at least eight characters with uppercase, lowercase, a digit and a non-alphanumeric character. Never use the literal placeholder above.
 

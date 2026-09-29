@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace HealthTrack.Models.Training;
 
@@ -9,9 +10,9 @@ public class PlanForm : IValidatableObject
     [Required, Display(Name = "Client")] public string ClientId { get; set; } = string.Empty;
     [Required, StringLength(100), Display(Name = "Plan name")] public string PlanName { get; set; } = string.Empty;
     [StringLength(2000)] public string? Description { get; set; }
-    [Required, DataType(DataType.Date), Display(Name = "Start date")]
+    [BindRequired, Required, DataType(DataType.Date), Display(Name = "Start date")]
     public DateOnly StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
-    [Required, DataType(DataType.Date), Display(Name = "End date")]
+    [BindRequired, Required, DataType(DataType.Date), Display(Name = "End date")]
     public DateOnly EndDate { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddDays(30));
     [ValidateNever] public List<SelectListItem> Clients { get; set; } = [];
 
@@ -54,7 +55,7 @@ public class WorkoutLogForm
     [ValidateNever] public string SelectedPlanName { get; set; } = string.Empty;
     [Range(1, int.MaxValue), Display(Name = "Workout plan")] public int WorkoutPlanId { get; set; }
     [Display(Name = "Exercise (optional)")] public int? WorkoutExerciseId { get; set; }
-    [DataType(DataType.Date), Display(Name = "Workout date")] public DateOnly WorkoutDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    [BindRequired, DataType(DataType.Date), Display(Name = "Workout date")] public DateOnly WorkoutDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
     [Range(1, 1440), Display(Name = "Duration (minutes)")] public int DurationMinutes { get; set; }
     [Range(0, 20000), Display(Name = "Calories burned (kcal)")] public int CaloriesBurned { get; set; }
     [StringLength(2000)] public string? Notes { get; set; }
@@ -65,7 +66,7 @@ public class WorkoutLogForm
 public class MealLogForm
 {
     [Range(1, int.MaxValue), Display(Name = "Diet plan")] public int DietPlanId { get; set; }
-    [DataType(DataType.Date), Display(Name = "Meal date")] public DateOnly MealDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    [BindRequired, DataType(DataType.Date), Display(Name = "Meal date")] public DateOnly MealDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
     [EnumDataType(typeof(MealType)), Display(Name = "Meal type")] public MealType MealType { get; set; } = MealType.Breakfast;
     [Required, StringLength(150), Display(Name = "Food name")] public string FoodName { get; set; } = string.Empty;
     [Required, StringLength(100)] public string Quantity { get; set; } = string.Empty;

@@ -10,6 +10,9 @@ Generated bin/ and obj/ files (assemblies, runtime metadata, caches, generated s
 
 | File | Purpose |
 | --- | --- |
+| HealthTrack/SECURITY-REVIEW.md | Authorization/ownership audit, security fixes, test checklist and changed-file inventory. |
+| HealthTrack/Tests/Security.Smoke.ps1 | Regression tests for authorization refresh, invalid inputs, authentication defaults and generic errors. |
+| HealthTrack/Tests/ErrorHandling.Smoke.ps1 | Controlled exception-path verification against a separately configured test instance. |
 | HealthTrack/Views/AdminReports/Print.cshtml | Standalone Razor rendering of database-backed Admin totals for printing. |
 | HealthTrack/wwwroot/css/admin-report-print.css | A4 portrait print presentation without navigation, footer or controls. |
 | HealthTrack/REPORTS.md | Reports scope, manual/automated testing instructions and module file list. |
