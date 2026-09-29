@@ -57,7 +57,25 @@ body {
 .dashboard-card .card-body { padding: 1.5rem; }
 .dashboard-value { font-size: 2.2rem; font-weight: 700; color: #126b60; }
 .dashboard-badge { background-color: #e0f2ee; color: #125d55; }
-.navbar .nav-link { overflow-wrap: anywhere; }
+.healthtrack-menu { width: 100%; }
+.healthtrack-menu > summary {
+  position: absolute;
+  right: .75rem;
+  top: .5rem;
+  list-style: none;
+  cursor: pointer;
+}
+.healthtrack-menu > summary::-webkit-details-marker { display: none; }
+.healthtrack-menu > summary:focus-visible { outline: 3px solid #126b60; outline-offset: 2px; }
+.navbar .container-fluid { min-height: 2.5rem; }
+.healthtrack-links { display: grid; grid-template-columns: 1fr; gap: .25rem 1rem; }
+.healthtrack-menu .nav-link { white-space: nowrap; }
+.healthtrack-account { flex-direction: row; align-items: center; gap: 1rem; }
+.healthtrack-greeting { min-width: 0; flex: 1; }
+.healthtrack-greeting .nav-link { white-space: normal; overflow-wrap: anywhere; }
+.healthtrack-account form { margin: 0; }
+@media (min-width: 576px) { .healthtrack-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 992px) { .healthtrack-links { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);

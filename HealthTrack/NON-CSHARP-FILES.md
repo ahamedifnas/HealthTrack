@@ -4,12 +4,17 @@ Inventory of all non-ignored source files, including this report. Paths are rela
 
 All application rules run in C# under ASP.NET Core MVC. Razor only renders prepared data and HTML forms. SQL Server (including LocalDB for development) is the only configured database provider; Identity and application persistence use Entity Framework Core.
 
-PowerShell tests are development tools, not application logic. The assignment script only launches the C# command. Vendor CSS variants and source maps are retained distribution/debugging assets; only bootstrap.min.css is referenced by the layout. These optional assets are not needed to execute application logic.
+PowerShell tests and the Node/Playwright browser test are development tools, not application logic. The browser test is never served and runs the application with browser JavaScript disabled. Playwright is installed outside the repository; no Node application dependencies are introduced. The assignment script only launches the C# command. Vendor CSS variants and source maps are retained distribution/debugging assets; only bootstrap.min.css is referenced by the layout. These optional assets are not needed to execute application logic.
 
 Generated bin/ and obj/ files (assemblies, runtime metadata, caches, generated styles and static asset manifests), .vs/ IDE state, and .git/ repository metadata are excluded from this source inventory. They are produced by .NET/Visual Studio/Git and do not introduce another application language or database.
 
 | File | Purpose |
 | --- | --- |
+| HealthTrack/FUNCTIONAL-REVIEW.md | Final functional findings, verification results, remaining limits and manual checklist. |
+| HealthTrack/Tests/Database.Smoke.ps1 | Read-only SQL Server migration, table, foreign-key and index checks. |
+| HealthTrack/Tests/Navigation.Browser.ps1 | Browser test launcher and temporary account cleanup. |
+| HealthTrack/Tests/Navigation.Browser.cjs | Headless Edge/Playwright test tooling, outside application runtime. |
+| HealthTrack/Views/Home/Status.cshtml | Friendly standalone HTTP error status presentation. |
 | HealthTrack/SECURITY-REVIEW.md | Authorization/ownership audit, security fixes, test checklist and changed-file inventory. |
 | HealthTrack/Tests/Security.Smoke.ps1 | Regression tests for authorization refresh, invalid inputs, authentication defaults and generic errors. |
 | HealthTrack/Tests/ErrorHandling.Smoke.ps1 | Controlled exception-path verification against a separately configured test instance. |

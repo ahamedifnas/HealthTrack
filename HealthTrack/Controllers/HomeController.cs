@@ -18,6 +18,14 @@ namespace HealthTrack.Controllers
             return View();
         }
 
+        [IgnoreAntiforgeryToken] // Read-only rendering for failed requests, including POST.
+        public IActionResult Status(int code = 404)
+        {
+            if (code < 400 || code > 599) code = 404;
+            Response.StatusCode = code;
+            return View(code);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [IgnoreAntiforgeryToken] // Read-only error rendering also handles failed POST requests.
         public IActionResult Error()

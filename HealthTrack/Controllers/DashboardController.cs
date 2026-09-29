@@ -34,21 +34,23 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
         var measurements = database.HealthMeasurements.AsNoTracking().Where(x => x.ClientId == user.Id);
         var latest = await measurements.OrderByDescending(x => x.MeasurementDate).FirstOrDefaultAsync();
         var since = today.AddDays(-6);
+        var recentMeasurements = measurements.Where(x => x.MeasurementDate >= since && x.MeasurementDate <= today);
         return View(new ClientDashboardViewModel
         {
             FullName = user.FullName,
-            // Multiple active Phase 3 plans are allowed; preview the newest one deterministically.
+            // Preview the newest active plan whose dates include today.
             WorkoutPlan = await database.WorkoutPlans.AsNoTracking()
-                .Where(x => x.ClientId == user.Id && x.Status == PlanStatus.Active)
+                .Where(x => x.ClientId == user.Id && x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today)
                 .Include(x => x.Exercises.OrderBy(e => e.Id).Take(3))
                 .OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).FirstOrDefaultAsync(),
             DietPlan = await database.DietPlans.AsNoTracking()
-                .Where(x => x.ClientId == user.Id && x.Status == PlanStatus.Active)
+                .Where(x => x.ClientId == user.Id && x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today)
                 .Include(x => x.Meals.OrderBy(m => m.MealType).ThenBy(m => m.Id).Take(4))
                 .OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).FirstOrDefaultAsync(),
             CurrentWeight = latest?.WeightKg, BMI = latest?.BMI, TargetWeight = user.TargetWeight,
             LatestMeasurementDate = latest?.MeasurementDate,
-            CaloriesBurned = await measurements.Where(x => x.MeasurementDate >= since && x.MeasurementDate <= today).SumAsync(x => (long)x.CaloriesBurned),
+            CaloriesBurned = await recentMeasurements.AnyAsync()
+                ? await recentMeasurements.SumAsync(x => (long)x.CaloriesBurned) : null,
             NextAppointment = await database.Appointments.AsNoTracking().Include(x => x.Trainer)
                 .Where(x => x.ClientId == user.Id && x.Status == AppointmentStatus.Approved
                     && (x.AppointmentDate > today || (x.AppointmentDate == today && x.AppointmentTime > time)))

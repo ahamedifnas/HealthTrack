@@ -88,6 +88,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/Home/Status", "?code={0}");
 app.UseRouting();
 
 app.UseAuthentication();
