@@ -1,0 +1,7 @@
+@model HealthTrack.Models.Dashboard.DashboardHeader
+<section class="dashboard-heading">
+    <span class="portal-badge">@Model.Portal</span>
+    <h1>@Model.Title</h1>
+    @if (Model.Greeting is not null) { <p class="dashboard-greeting">@Model.Greeting</p> }
+    <p class="dashboard-subtitle">@Model.Subtitle</p>
+</section>

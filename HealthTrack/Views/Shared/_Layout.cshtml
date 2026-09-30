@@ -6,20 +6,20 @@
     <title>@ViewData["Title"] - HealthTrack</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/HealthTrack.styles.css" asp-append-version="true" />
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <header>
-        <nav class="navbar navbar-light bg-white border-bottom box-shadow mb-3" aria-label="Main navigation">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HealthTrack</a>
+        <nav class="navbar navbar-expand-xl navbar-light healthtrack-navbar" aria-label="Main navigation">
+            <div class="container-fluid healthtrack-nav-container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><span class="brand-mark" aria-hidden="true">+</span>HealthTrack</a>
                 @await Component.InvokeAsync("Navigation")
 
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container healthtrack-content">
+        <main id="main-content" role="main" class="pb-4" tabindex="-1">
             @if (TempData["Success"] is string success)
             {
                 <div class="alert alert-success" role="status">@success</div>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 namespace HealthTrack.Controllers;
 
 [Authorize(Roles = AppRoles.Admin)]
@@ -45,7 +46,7 @@ public class AdminAssignmentsController(ApplicationDbContext database, AdminDash
 
     private async Task<IActionResult> InvalidAssignment(AssignClientViewModel assignment)
     {
-        var model = await dashboard.LoadAsync();
+        var model = await dashboard.LoadAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
         model.Assignment = assignment;
         return View("~/Views/Dashboard/Admin.cshtml", model);
     }

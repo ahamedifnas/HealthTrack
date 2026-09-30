@@ -73,7 +73,7 @@ try {
     $null=Submit $client '/Measurements/TargetWeight' '/Measurements/TargetWeight' @{TargetWeight='0'}
     Assert ((Query 'SELECT TargetWeight FROM AspNetUsers WHERE Id=@id' @{id=$clientId}) -eq 70) 'Invalid target rejected'
     $page=Get-Page $client '/Dashboard/Client'
-    Assert ($page.Content.Contains('80 kg') -and $page.Content.Contains('20.00') -and $page.Content.Contains('500 kcal') -and $page.Content.Contains('70 kg')) 'Dashboard uses latest date, calculated BMI, seven-day calories, and target'
+    Assert ($page.Content.Contains('80 kg') -and $page.Content.Contains('20.00') -and $page.Content.Contains('Not available yet') -and $page.Content.Contains('70 kg')) 'Dashboard uses latest measurement and target; measurement calories do not substitute for workout data'
     $page=Get-Page $client '/Progress'
     Assert ($page.Content.Contains('id="progress-table"') -and $page.Content.Contains('BMI change') -and $page.Content.Contains('Calories burned (kcal)')) 'Progress rendered as a Razor table'
     $table=[regex]::Match($page.Content,'<table[^>]*id="progress-table"[\s\S]*?</table>').Value

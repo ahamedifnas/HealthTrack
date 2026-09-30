@@ -1,0 +1,14 @@
+@model IReadOnlyList<HealthTrack.Models.Dashboard.DashboardMetric>
+<div class="dashboard-kpis dashboard-kpis--@Model.Count" aria-label="Key metrics">
+    @foreach (var metric in Model)
+    {
+        <section class="card dashboard-card kpi-card">
+            <div class="card-body">
+                <span class="kpi-accent" aria-hidden="true"></span>
+                <h2 class="kpi-title">@metric.Title</h2>
+                <p class="dashboard-value" data-testid="@metric.TestId">@metric.Value</p>
+                @if (metric.Hint is not null) { <p class="kpi-hint">@metric.Hint</p> }
+            </div>
+        </section>
+    }
+</div>

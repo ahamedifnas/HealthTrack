@@ -48,7 +48,8 @@ try {
     $null=Query 'UPDATE AspNetUsers SET IsActive=0 WHERE Id=@id' @{id=$accounts.inactive.Id}
     $page=Get-Page $admin '/Dashboard/Admin'
     Assert ($page.Content.Contains('Trainer-Client Assignment') -and $page.Content.Contains('name="Assignment.ClientId"')) 'Admin Dashboard contains assignment controls'
-    Assert (-not $page.Content.Contains("inactive $prefix")) 'Inactive clients are excluded from dropdown'
+    $clientOptions=[regex]::Match($page.Content,'(?s)<select[^>]*name="Assignment.ClientId"[^>]*>.*?</select>')
+    Assert ($clientOptions.Success -and -not $clientOptions.Value.Contains("inactive $prefix")) 'Inactive clients are excluded from assignment dropdown even when visible in recent system activity'
     $fields=@{'Assignment.ClientId'=$clientId;'Assignment.TrainerId'=$trainerId}
     ExpectStatus 403 { Submit $trainer '/Account/Login' '/AdminAssignments/Assign' $fields } 'Trainer cannot assign clients'
     ExpectStatus 403 { Submit $client '/Account/Login' '/AdminAssignments/Assign' $fields } 'Client cannot assign trainers'

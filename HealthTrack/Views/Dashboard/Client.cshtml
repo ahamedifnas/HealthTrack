@@ -1,114 +1,114 @@
-@model HealthTrack.Models.Dashboard.ClientDashboardViewModel
+﻿@model HealthTrack.Models.Dashboard.ClientDashboardViewModel
 @{ ViewData["Title"] = "Client Dashboard"; }
-<section class="dashboard-heading">
-    <p class="dashboard-eyebrow">Your health, one day at a time</p>
-    <h1>Welcome, @Model.FullName!</h1>
-    <p class="mb-0">Your Client dashboard brings your daily health essentials together.</p>
+<partial name="_DashboardHeader" model="Model.Header" />
+<partial name="_DashboardMetrics" model="Model.Metrics" />
+<section class="card dashboard-card dashboard-section" aria-labelledby="quick-actions-heading"><div class="card-body">
+    <div class="section-heading"><div><p class="section-eyebrow">Your next step</p><h2 id="quick-actions-heading">Quick Actions</h2></div></div>
+    <div class="quick-actions">
+        <a asp-controller="Measurements" asp-action="Create" class="btn btn-success">Add Measurement</a>
+        <a asp-controller="Measurements" asp-action="Index" class="btn btn-outline-success">Measurement History</a>
+        <a asp-controller="Measurements" asp-action="TargetWeight" class="btn btn-outline-success">Set Target Weight</a>
+        <a asp-controller="Progress" asp-action="Index" class="btn btn-outline-success">Progress</a>
+        <a asp-controller="Workouts" asp-action="Index" class="btn btn-outline-success">My Workouts</a>
+        <a asp-controller="Diets" asp-action="Index" class="btn btn-outline-success">My Diet</a>
+    </div>
+</div></section>
+<section class="dashboard-section" aria-labelledby="daily-overview-heading">
+    <div class="section-heading"><div><p class="section-eyebrow">Made for your day</p><h2 id="daily-overview-heading">Daily Overview</h2></div><span class="section-meta">@ViewData["Today"]</span></div>
+    <div class="row g-4">
+        <div class="col-12 col-lg-4"><section class="card dashboard-card h-100"><div class="card-body d-flex flex-column">
+            <span class="section-icon" aria-hidden="true">↗</span><h3 class="h5">Today's Workout</h3>
+            @if (Model.WorkoutPlan is { } workout)
+            {
+                <p class="plan-name">@workout.PlanName</p>
+                @if (workout.Exercises.Count == 0) { <p class="empty-state">Your workout plan has no exercises added yet.</p> }
+                else
+                {
+                    <ul class="overview-list">
+                    @foreach (var exercise in workout.Exercises)
+                    {
+                        <li><span class="fw-semibold">@exercise.ExerciseName</span><div class="small text-muted d-flex flex-wrap gap-2">
+                            @if (exercise.Sets > 0) { <span>@exercise.Sets sets</span> }
+                            @if (exercise.Repetitions > 0) { <span>@exercise.Repetitions reps</span> }
+                            @if (exercise.DurationMinutes > 0) { <span>@exercise.DurationMinutes min</span> }
+                        </div></li>
+                    }
+                    </ul>
+                }
+            }
+            else { <p class="empty-state">No active workout plan has been assigned for today.</p> }
+            <div class="mt-auto pt-3"><a asp-controller="Workouts" asp-action="Index" class="btn btn-outline-success w-100">View Full Workout</a></div>
+        </div></section></div>
+        <div class="col-12 col-lg-4"><section class="card dashboard-card h-100"><div class="card-body d-flex flex-column">
+            <span class="section-icon" aria-hidden="true">♡</span><h3 class="h5">Today's Diet</h3>
+            @if (Model.DietPlan is { } diet)
+            {
+                <p class="plan-name">@diet.PlanName</p>
+                @if (diet.DailyCalories > 0) { <p class="small text-muted">Daily calorie target: @diet.DailyCalories kcal</p> }
+                @if (diet.Meals.Count == 0) { <p class="empty-state">Your diet plan has no meals added yet.</p> }
+                else
+                {
+                    <ul class="overview-list">
+                    @foreach (var meal in diet.Meals)
+                    {
+                        <li><span class="badge dashboard-badge me-2">@meal.MealType</span><span class="fw-semibold">@meal.FoodName</span>
+                            @if (!string.IsNullOrWhiteSpace(meal.Quantity)) { <span class="table-detail">@meal.Quantity</span> }
+                        </li>
+                    }
+                    </ul>
+                }
+            }
+            else { <p class="empty-state">No active diet plan has been assigned for today.</p> }
+            <div class="mt-auto pt-3"><a asp-controller="Diets" asp-action="Index" class="btn btn-outline-success w-100">View Full Diet</a></div>
+        </div></section></div>
+        <div class="col-12 col-lg-4"><section class="card dashboard-card h-100"><div class="card-body d-flex flex-column">
+            <span class="section-icon" aria-hidden="true">▦</span><h3 class="h5">Next Approved Appointment</h3>
+            @if (Model.NextAppointment is { } next)
+            {
+                <span class="badge status-positive align-self-start mb-3">Approved</span>
+                <p class="plan-name" data-testid="next-appointment">@next.AppointmentDate.ToString("yyyy-MM-dd") at @next.AppointmentTime.ToString("HH:mm") (@ViewData["TimeZoneId"])</p>
+                <p class="text-muted">Trainer: @next.Trainer.FullName</p>
+                <div class="mt-auto pt-3"><a asp-controller="Appointments" asp-action="Details" asp-route-id="@next.Id" class="btn btn-outline-success w-100">View appointment</a></div>
+            }
+            else
+            {
+                <p class="empty-state">No upcoming approved appointments.</p>
+                <div class="mt-auto pt-3"><a asp-controller="Appointments" asp-action="Index" class="btn btn-outline-success w-100">View appointments</a></div>
+            }
+        </div></section></div>
+    </div>
 </section>
-<div class="d-flex gap-2 flex-wrap mb-4">
-    <a asp-controller="Workouts" asp-action="Index" class="btn btn-primary">My Workouts</a>
-    <a asp-controller="Diets" asp-action="Index" class="btn btn-outline-primary">My Diet</a>
-</div>
-<div class="d-flex gap-2 flex-wrap mb-4"><a asp-controller="Measurements" asp-action="Create" class="btn btn-success">+ Add Measurement</a><a asp-controller="Measurements" asp-action="Index" class="btn btn-outline-success">Measurement history</a><a asp-controller="Measurements" asp-action="TargetWeight" class="btn btn-outline-success">Set target weight</a><a asp-controller="Progress" asp-action="Index" class="btn btn-outline-success">Progress</a></div>
-<div class="row g-4">
-    @foreach (var metric in Model.Metrics)
-    {
-        <div class="col-12 col-sm-6 col-xl-3">
-            <section class="card dashboard-card h-100">
-                <div class="card-body">
-                    <h2 class="h6 text-muted">@metric.Title</h2>
-                    <p class="dashboard-value">@metric.Value</p>
-                    <p class="small text-muted mb-0">@metric.Hint</p>
-                </div>
-            </section>
-        </div>
-    }
-    <div class="col-12 col-lg-6">
-        <section class="card dashboard-card h-100">
-            <div class="card-body">
-                <h2 class="h5">Next approved appointment</h2>
-                @if (Model.NextAppointment is { } next)
-                {
-                    <p data-testid="next-appointment">@next.AppointmentDate.ToString("yyyy-MM-dd") at @next.AppointmentTime.ToString("HH:mm") (@ViewData["TimeZoneId"])</p>
-                    <p>Trainer: @next.Trainer.FullName</p>
-                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@next.Id" class="btn btn-outline-primary">View appointment</a>
-                }
-                else
-                {
-                    <p class="text-muted">No upcoming approved appointment.</p>
-                    <a asp-controller="Appointments" asp-action="Index">View appointments</a>
-                }
-            </div>
-        </section>
-    </div>
-    <div class="col-12 col-lg-6">
-        <section class="card dashboard-card h-100">
-            <div class="card-body d-flex flex-column">
-                <h2 class="h5">Today's Workout</h2>
-                @if (Model.WorkoutPlan is { } workout)
-                {
-                    <h3 class="h6">@workout.PlanName</h3>
-                    @if (workout.Exercises.Count == 0)
-                    {
-                        <p class="text-muted">Your workout plan has no exercises added yet.</p>
-                    }
-                    else
-                    {
-                        <ul class="list-unstyled mb-3">
-                        @foreach (var exercise in workout.Exercises)
-                        {
-                            <li class="mb-2">
-                                <div class="fw-semibold">@exercise.ExerciseName</div>
-                                <div class="small text-muted d-flex flex-wrap gap-2">
-                                    @if (exercise.Sets > 0) { <span>@exercise.Sets sets</span> }
-                                    @if (exercise.Repetitions > 0) { <span>@exercise.Repetitions reps</span> }
-                                    @if (exercise.DurationMinutes > 0) { <span>@exercise.DurationMinutes min</span> }
-                                </div>
-                            </li>
-                        }
-                        </ul>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">No active workout plan available for today.</p>
-                }
-                <div class="mt-auto"><a asp-controller="Workouts" asp-action="Index" class="btn btn-outline-success">View Full Workout</a></div>
-            </div>
-        </section>
-    </div>
-    <div class="col-12 col-lg-6">
-        <section class="card dashboard-card h-100">
-            <div class="card-body d-flex flex-column">
-                <h2 class="h5">Today's Diet</h2>
-                @if (Model.DietPlan is { } diet)
-                {
-                    <h3 class="h6">@diet.PlanName</h3>
-                    @if (diet.DailyCalories > 0) { <p class="small text-muted">Daily calorie target: @diet.DailyCalories kcal</p> }
-                    @if (diet.Meals.Count == 0)
-                    {
-                        <p class="text-muted">Your diet plan has no meals added yet.</p>
-                    }
-                    else
-                    {
-                        <ul class="list-unstyled mb-3">
-                        @foreach (var meal in diet.Meals)
-                        {
-                            <li class="mb-2">
-                                <span class="badge dashboard-badge me-1">@meal.MealType</span>
-                                <span class="fw-semibold">@meal.FoodName</span>
-                                @if (!string.IsNullOrWhiteSpace(meal.Quantity)) { <span class="small text-muted">(@meal.Quantity)</span> }
-                            </li>
-                        }
-                        </ul>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">No active diet plan available for today.</p>
-                }
-                <div class="mt-auto"><a asp-controller="Diets" asp-action="Index" class="btn btn-outline-success">View Full Diet</a></div>
-            </div>
-        </section>
-    </div>
+<div class="row g-4 dashboard-section">
+    <div class="col-12 col-lg-7"><section class="card dashboard-card h-100" aria-labelledby="progress-heading"><div class="card-body">
+        <div class="section-heading"><div><p class="section-eyebrow">Every step counts</p><h2 id="progress-heading">Your Progress</h2></div><a asp-controller="Progress" asp-action="Index" class="section-link">View progress →</a></div>
+        @if (Model.WeightProgressPercent is { } progress)
+        {
+            <div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><span class="fw-semibold">Weight goal progress</span><strong class="text-healthtrack">@progress%</strong></div>
+            <div class="progress goal-progress" role="progressbar" aria-label="Weight goal progress since your first measurement" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: @Model.WeightProgressCss"></div></div>
+            <div class="progress-labels"><span>Starting weight: @Model.StartingWeight?.ToString("0.##") kg</span><span>Target: @Model.TargetWeight?.ToString("0.##") kg</span></div>
+            <p class="small text-muted mt-3">Based on the change in distance to your target since your first recorded weight.</p>
+        }
+        else { <p class="empty-state">Record your measurements and set a target weight to follow your progress.</p> }
+        <p class="summary-note mb-0"><strong>@Model.MeasurementCount</strong> measurements recorded
+            @if (Model.LatestMeasurementDate is { } date) { <span> · Latest: @date.ToString("dd MMM yyyy")</span> }
+        </p>
+    </div></section></div>
+    <div class="col-12 col-lg-5"><section class="card dashboard-card h-100" aria-labelledby="notifications-heading"><div class="card-body">
+        <div class="section-heading"><div><p class="section-eyebrow">Stay up to date</p><h2 id="notifications-heading">Notifications <span class="badge dashboard-badge" aria-label="@Model.UnreadNotifications unread notifications">@Model.UnreadNotifications unread</span></h2></div></div>
+        @if (Model.RecentNotifications.Count == 0) { <p class="empty-state">No recent notifications.</p> }
+        else
+        {
+            <ul class="overview-list notification-list">
+            @foreach (var notification in Model.RecentNotifications)
+            {
+                <li><span class="fw-semibold">@notification.Title</span>
+                    @if (!notification.IsRead) { <span class="badge dashboard-badge ms-1">Unread</span> }
+                    <p class="small text-muted mb-1">@notification.Message</p>
+                    <time class="small text-muted" datetime="@notification.CreatedAt.ToString("O")">@notification.CreatedAt.ToString("dd MMM yyyy HH:mm") UTC</time>
+                </li>
+            }
+            </ul>
+        }
+        <a asp-controller="Notifications" asp-action="Index" class="section-link">View all notifications →</a>
+    </div></section></div>
 </div>

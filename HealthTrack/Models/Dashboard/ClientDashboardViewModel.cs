@@ -2,6 +2,27 @@ namespace HealthTrack.Models.Dashboard;
 
 public class ClientDashboardViewModel
 {
+    public DashboardHeader Header => new("Client Portal", $"Welcome, {DashboardPresentation.FirstName(FullName)}!",
+        "Small steps today. A healthier you tomorrow.");
+    public decimal? StartingWeight { get; set; }
+    public int MeasurementCount { get; set; }
+    public int UnreadNotifications { get; set; }
+    public List<HealthTrack.Models.Notification> RecentNotifications { get; set; } = new();
+    // Progress is the reduction in distance to the target since the first recorded weight.
+    public decimal? WeightProgressPercent
+    {
+        get
+        {
+            if (StartingWeight is not { } start || CurrentWeight is not { } current || TargetWeight is not { } target)
+                return null;
+            if (current == target) return 100;
+            var startingDistance = Math.Abs(start - target);
+            if (startingDistance == 0) return null;
+            return Math.Round(Math.Clamp((1 - Math.Abs(current - target) / startingDistance) * 100, 0, 100), 0);
+        }
+    }
+    public string? WeightProgressCss => WeightProgressPercent is { } progress
+        ? progress.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + "%" : null;
     public List<DashboardMetric> Metrics
     {
         get

@@ -1,89 +1,166 @@
-html {
-  font-size: 14px;
+﻿/* HealthTrack design tokens */
+:root {
+  --ht-green: #126b60;
+  --ht-green-dark: #0c5149;
+  --ht-teal-soft: #e7f3ef;
+  --ht-ink: #203a36;
+  --ht-muted: #5d706b;
+  --ht-border: #dce7e2;
+  --ht-background: #f3f7f5;
+  --ht-radius: .875rem;
+  --ht-shadow: 0 4px 20px rgb(25 65 51 / 5%);
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
+/* Page, typography and keyboard access */
+html { font-size: 16px; min-height: 100%; }
+body { min-height: 100vh; display: flex; flex-direction: column; background: var(--ht-background); color: var(--ht-ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+body > .healthtrack-content { flex: 1; }
+.healthtrack-content { max-width: 1400px; padding-top: .5rem; padding-bottom: 2rem; }
+a { color: var(--ht-green); text-underline-offset: .2em; }
+a:hover { color: var(--ht-green-dark); }
+h1, h2, h3, h4 { font-weight: 650; letter-spacing: -.025em; }
+.text-muted { color: var(--ht-muted) !important; }
+.text-healthtrack { color: var(--ht-green); }
+:focus-visible { outline: 3px solid var(--ht-green); outline-offset: 3px; }
+.btn:focus, .form-control:focus, .form-select:focus, .form-check-input:focus { border-color: var(--ht-green); box-shadow: 0 0 0 .22rem rgb(18 107 96 / 20%); }
+.skip-link { position: fixed; top: -5rem; left: 1rem; z-index: 1100; background: white; border: 2px solid var(--ht-green); border-radius: .5rem; padding: .75rem 1rem; }
+.skip-link:focus { top: .75rem; }
+.footer { padding: 1.25rem 0; background: white; font-size: .875rem; }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  margin-bottom: 60px;
-  background-color: #f4f7fa;
-  color: #203547;
-}
-
-.navbar-brand {
-  color: #126b60 !important;
-  font-weight: 750;
-}
-
-.dashboard-heading {
-  background: linear-gradient(120deg, #125d55, #207a70);
-  color: white;
-  border-radius: 1rem;
-  padding: clamp(1.5rem, 4vw, 3rem);
-  margin: 1.5rem 0;
-  overflow-wrap: anywhere;
-}
-
-.dashboard-heading h1 {
-  font-size: clamp(1.7rem, 4vw, 2.5rem);
-  font-weight: 700;
-}
-
-.dashboard-eyebrow {
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-}
-
-.dashboard-card {
-  border: 1px solid #e0e8ee;
-  border-radius: 1rem;
-  box-shadow: 0 4px 16px rgb(32 53 71 / 5%);
-}
-
-.dashboard-card .card-body { padding: 1.5rem; }
-.dashboard-value { font-size: 2.2rem; font-weight: 700; color: #126b60; }
-.dashboard-badge { background-color: #e0f2ee; color: #125d55; }
-.healthtrack-menu { width: 100%; }
-.healthtrack-menu > summary {
-  position: absolute;
-  right: .75rem;
-  top: .5rem;
-  list-style: none;
-  cursor: pointer;
-}
+/* Shared responsive navigation: native disclosure keeps every route accessible without scripts. */
+.healthtrack-navbar { background: white; border-bottom: 1px solid var(--ht-border); box-shadow: 0 2px 12px rgb(25 65 51 / 4%); padding-block: .8rem; }
+.healthtrack-nav-container { max-width: 1600px; padding-inline: 1.25rem; min-height: 2.75rem; }
+.navbar-brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--ht-green) !important; font-weight: 750; letter-spacing: -.04em; white-space: nowrap; flex-shrink: 0; }
+.brand-mark { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: .55rem; background: var(--ht-green); color: white; font-size: 1.5rem; font-weight: 600; line-height: 1; }
+.healthtrack-menu { width: 100%; min-width: 0; }
+.healthtrack-menu > summary { position: absolute; right: 1.25rem; top: .9rem; list-style: none; cursor: pointer; padding: .4rem .55rem; border-color: var(--ht-border); }
 .healthtrack-menu > summary::-webkit-details-marker { display: none; }
-.healthtrack-menu > summary:focus-visible { outline: 3px solid #126b60; outline-offset: 2px; }
-.navbar .container-fluid { min-height: 2.5rem; }
-.healthtrack-links { display: grid; grid-template-columns: 1fr; gap: .25rem 1rem; }
-.healthtrack-menu .nav-link { white-space: nowrap; }
-.healthtrack-account { flex-direction: row; align-items: center; gap: 1rem; }
-.healthtrack-greeting { min-width: 0; flex: 1; }
-.healthtrack-greeting .nav-link { white-space: normal; overflow-wrap: anywhere; }
+.healthtrack-menu-panel { border-top: 1px solid var(--ht-border); margin-top: .75rem; padding-top: .75rem; }
+.healthtrack-links { gap: .1rem; }
+.healthtrack-menu .nav-link { white-space: nowrap; color: var(--ht-ink); font-weight: 500; border-radius: .4rem; padding: .65rem .6rem; }
+.healthtrack-menu a.nav-link:hover { color: var(--ht-green-dark); background: var(--ht-teal-soft); }
+.healthtrack-account { border-top: 1px solid var(--ht-border); margin-top: .5rem; padding-top: .5rem; }
 .healthtrack-account form { margin: 0; }
-@media (min-width: 576px) { .healthtrack-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 992px) { .healthtrack-links { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.healthtrack-greeting { min-width: 0; }
+.healthtrack-greeting .nav-link { overflow: hidden; text-overflow: ellipsis; color: var(--ht-muted); }
+.healthtrack-menu .logout-button { text-decoration: none; color: var(--ht-green); }
+.healthtrack-menu .badge { font-size: .7rem; }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
+/* Page headers and section headings */
+.dashboard-heading { position: relative; background: linear-gradient(115deg, #0e554b, #187567); color: white; border: 1px solid #126458; border-radius: var(--ht-radius); padding: clamp(1.5rem, 3vw, 2.25rem); margin: 1.5rem 0; overflow-wrap: anywhere; box-shadow: var(--ht-shadow); }
+.dashboard-heading h1 { font-size: clamp(1.65rem, 3vw, 2.35rem); margin: .75rem 0 .5rem; font-weight: 700; }
+.portal-badge { display: inline-block; padding: .3rem .65rem; border: 1px solid rgb(255 255 255 / 35%); border-radius: 2rem; font-size: .75rem; font-weight: 600; letter-spacing: .04em; }
+.dashboard-greeting { font-weight: 600; margin: .25rem 0; }
+.dashboard-subtitle { margin: .5rem 0 0; color: #e3f3eb; line-height: 1.6; }
+.dashboard-eyebrow, .section-eyebrow { text-transform: uppercase; font-weight: 650; font-size: .7rem; letter-spacing: .1em; margin-bottom: .35rem; }
+.section-eyebrow { color: var(--ht-green); }
+.dashboard-section { margin-top: 1.5rem; }
+.section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; margin-bottom: 1.25rem; }
+.section-heading h2 { font-size: 1.25rem; margin-bottom: 0; }
+.section-heading h3 { margin-bottom: 0; }
+.section-heading .badge { font-size: .7rem; vertical-align: middle; }
+.section-meta { color: var(--ht-muted); font-size: .875rem; }
+.section-link { font-size: .875rem; font-weight: 600; text-decoration: none; }
+.section-link:hover { text-decoration: underline; }
+.section-icon { display: inline-grid; place-items: center; align-self: flex-start; width: 2.5rem; height: 2.5rem; margin-bottom: 1rem; border-radius: .65rem; background: var(--ht-teal-soft); color: var(--ht-green); font-size: 1.4rem; }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
+/* Cards and KPI grid */
+.card { border-color: var(--ht-border); border-radius: var(--ht-radius); }
+.dashboard-card { background: white; border: 1px solid var(--ht-border); border-radius: var(--ht-radius); box-shadow: var(--ht-shadow); min-width: 0; }
+.dashboard-card .card-body { padding: clamp(1.15rem, 2vw, 1.5rem); }
+.dashboard-kpis { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.kpi-card .card-body { display: flex; flex-direction: column; align-items: flex-start; min-height: 10rem; }
+.kpi-accent { width: 1.65rem; height: .2rem; border-radius: 1rem; background: var(--ht-green); margin-bottom: .85rem; }
+.kpi-title { font-size: .85rem; color: var(--ht-muted); font-weight: 600; letter-spacing: 0; margin-bottom: .5rem; }
+.dashboard-value { font-size: clamp(1.5rem, 2vw, 2.15rem); font-weight: 700; line-height: 1.25; letter-spacing: -.035em; color: var(--ht-green); margin-bottom: .5rem; overflow-wrap: anywhere; }
+.kpi-hint { color: var(--ht-muted); font-size: .75rem; margin: auto 0 0; padding-top: .25rem; }
+.quick-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.plan-name { font-weight: 650; margin-bottom: .75rem; }
+.overview-list { list-style: none; margin: 0 0 1rem; padding: 0; }
+.overview-list li { padding: .85rem 0; border-bottom: 1px solid var(--ht-border); overflow-wrap: anywhere; }
+.overview-list li:first-child { padding-top: .25rem; }
+.overview-list li:last-child { border-bottom: 0; }
+.empty-state { color: var(--ht-muted); background: #f6f9f7; border: 1px dashed var(--ht-border); border-radius: .65rem; padding: 1rem; font-size: .9rem; line-height: 1.6; }
+.summary-tile { display: flex; flex-direction: column; gap: .35rem; background: #f2f8f5; border: 1px solid var(--ht-border); border-radius: .65rem; padding: 1.25rem; text-decoration: none; height: 100%; }
+.summary-tile:hover { border-color: var(--ht-green); background: var(--ht-teal-soft); }
+.summary-tile strong { font-size: 2rem; }
+.summary-note { padding: .85rem 1rem; border-radius: .6rem; background: #f2f8f5; color: var(--ht-muted); font-size: .875rem; }
 
+/* Server-rendered progress */
+.goal-progress { height: .7rem; background: #e3ede7; border-radius: 1rem; }
+.goal-progress .progress-bar { background: var(--ht-green); border-radius: 1rem; }
+.progress-labels { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-top: .65rem; font-size: .8rem; color: var(--ht-muted); }
+
+/* Buttons, forms, alerts and status badges */
+.btn { border-radius: .5rem; font-weight: 600; font-size: .875rem; padding: .6rem 1rem; }
+.btn-sm { font-size: .8rem; padding: .4rem .7rem; }
+.btn-primary, .btn-success { --bs-btn-bg: var(--ht-green); --bs-btn-border-color: var(--ht-green); --bs-btn-hover-bg: var(--ht-green-dark); --bs-btn-hover-border-color: var(--ht-green-dark); --bs-btn-active-bg: var(--ht-green-dark); --bs-btn-active-border-color: var(--ht-green-dark); --bs-btn-disabled-bg: var(--ht-green); --bs-btn-disabled-border-color: var(--ht-green); }
+.btn-outline-success, .btn-outline-primary { --bs-btn-color: var(--ht-green); --bs-btn-border-color: #6a9c8d; --bs-btn-hover-color: white; --bs-btn-hover-bg: var(--ht-green); --bs-btn-hover-border-color: var(--ht-green); --bs-btn-active-bg: var(--ht-green-dark); --bs-btn-active-border-color: var(--ht-green-dark); }
+.form-control, .form-select { border-color: #bbcdc3; border-radius: .5rem; padding: .65rem .8rem; }
+.form-select { padding-right: 2.25rem; }
+.form-label { font-weight: 600; color: var(--ht-ink); }
+.form-check-input:checked { background-color: var(--ht-green); border-color: var(--ht-green); }
+.alert { border-radius: .65rem; line-height: 1.6; }
+.alert-info { background: #edf5f3; border-color: #c5ded5; color: #264f45; }
+.badge { font-weight: 600; border-radius: .4rem; padding: .4em .65em; }
+.dashboard-badge, .status-positive { background: #e2f2e9; color: #135b3d; }
+.badge.bg-success { background-color: #e2f2e9 !important; color: #135b3d; }
+.badge.bg-secondary { background-color: #eef1ef !important; color: #596761; }
+.status-pending { background: #fff2d5; color: #78520a; }
+.status-muted { background: #eef1ef; color: #596761; }
+.status-neutral { background: #e9f1f7; color: #295471; }
+
+/* Tables and existing pagination */
+.table { --bs-table-color: var(--ht-ink); --bs-table-striped-bg: #f6f9f7; --bs-table-border-color: var(--ht-border); font-size: .9rem; }
+.table > :not(caption) > * > * { padding: .85rem 1rem; }
+.table thead th { background: #f3f8f5; color: #496259; font-size: .75rem; font-weight: 650; letter-spacing: .03em; border-bottom-width: 1px; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table-responsive { border-radius: .6rem; }
+.table-detail { display: block; color: var(--ht-muted); font-size: .8rem; margin-top: .2rem; overflow-wrap: anywhere; }
 .measurement-notes { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 32rem; }
+.page-link { color: var(--ht-green); }
+.page-item.active .page-link { background: var(--ht-green); border-color: var(--ht-green); }
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder { color: var(--bs-secondary-color); text-align: end; }
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder { text-align: start; }
+
+/* Responsive layout */
+@media (min-width: 576px) {
+  .dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 992px) {
+  .dashboard-kpis--4, .dashboard-kpis--7 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .dashboard-kpis--5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .dashboard-kpis--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .healthtrack-menu { width: auto; flex: 1; }
+  .healthtrack-menu > summary { display: none; }
+  .healthtrack-menu::details-content { content-visibility: visible; }
+  .healthtrack-menu > .healthtrack-menu-panel { display: flex; }
+  .healthtrack-menu-panel { flex-wrap: nowrap; gap: .35rem; }
+  .healthtrack-menu-panel, .healthtrack-account { border: 0; margin-top: 0; padding-top: 0; }
+  .healthtrack-links, .healthtrack-account { flex-direction: row; align-items: center; flex-wrap: nowrap; }
+  .healthtrack-links { flex: 1; justify-content: center; }
+  .healthtrack-account { min-width: 0; gap: .15rem; }
+  .healthtrack-account > .nav-item { flex-shrink: 0; }
+  .healthtrack-account > .healthtrack-greeting { flex: 0 1 auto; max-width: clamp(4rem, 7vw, 10rem); }
+  .navbar-expand-xl .navbar-nav .nav-link { padding-inline: .3rem; font-size: .75rem; padding-block: .55rem; }
+  .navbar-brand { margin-right: .6rem; font-size: 1.15rem; }
+}
+@media (min-width: 1400px) {
+  .navbar-expand-xl .navbar-nav .nav-link { padding-inline: .45rem; font-size: .85rem; }
+  .healthtrack-account > .healthtrack-greeting { max-width: 10rem; }
+}
+@media (max-width: 575.98px) {
+  .healthtrack-content { padding-inline: 1rem; }
+  .dashboard-heading { margin-top: 1rem; }
+  .quick-actions { flex-direction: column; }
+  .quick-actions .btn { width: 100%; }
+  .section-heading { align-items: flex-start; }
+  .table > :not(caption) > * > * { padding: .75rem; }
+}
+@media print {
+  .skip-link { display: none; }
+  body { background: white; }
+  .dashboard-card { box-shadow: none; }
+}

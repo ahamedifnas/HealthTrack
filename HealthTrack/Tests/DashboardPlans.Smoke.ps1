@@ -41,17 +41,31 @@ try {
     $clientId=$accounts.client.Id; $emptyId=$accounts.empty.Id; $trainerId=$accounts.trainer.Id
     $null=Query "DELETE FROM AspNetUserRoles WHERE UserId=@id; INSERT INTO AspNetUserRoles SELECT @id,Id FROM AspNetRoles WHERE Name='Trainer'" @{id=$trainerId}
     $page=Get-Page $empty '/Dashboard/Client'
-    Assert ($page.Content.Contains('No active workout plan available for today.')) 'Client without plans sees workout empty state'
-    Assert ($page.Content.Contains('No active diet plan available for today.')) 'Client without plans sees diet empty state'
+    Assert ($page.Content.Contains('No active workout plan has been assigned for today.')) 'Client without plans sees workout empty state'
+    Assert ($page.Content.Contains('No active diet plan has been assigned for today.')) 'Client without plans sees diet empty state'
     Assert (-not $page.Content.Contains('Coming soon')) 'Coming soon badges removed'
     Assert ($page.Content.Contains('Not available yet') -and -not $page.Content.Contains('0 kcal')) 'Missing calorie measurements do not display a fabricated zero'
     Assert ($page.Content.Contains('<details class="healthtrack-menu">') -and $page.Content.Contains('Toggle navigation menu')) 'Responsive native hamburger menu rendered'
     Assert (-not $page.Content.Contains('<script')) 'Navigation needs no JavaScript'
     $null=Query 'INSERT INTO HealthMeasurements (ClientId,MeasurementDate,WeightKg,HeightCm,BMI,CaloriesBurned) VALUES (@client,CAST(GETDATE() AS date),80,200,20,0)' @{client=$emptyId}
-    Assert ((Get-Page $empty '/Dashboard/Client').Content.Contains('0 kcal')) 'A recorded zero calorie value remains visible'
+    Assert ((Get-Page $empty '/Dashboard/Client').Content.Contains('Not available yet')) 'Measurements without workout logs do not supply dashboard calories'
     $null=Query 'UPDATE HealthMeasurements SET MeasurementDate=DATEADD(day,-10,CAST(GETDATE() AS date)) WHERE ClientId=@client' @{client=$emptyId}
     Assert ((Get-Page $empty '/Dashboard/Client').Content.Contains('Not available yet')) 'Only old measurements do not fabricate recent calories'
     $workout=Query "INSERT INTO WorkoutPlans (ClientId,TrainerId,PlanName,StartDate,EndDate,Status,CreatedAt) OUTPUT INSERTED.Id VALUES (@client,@trainer,'Dashboard workout',CAST(GETDATE() AS date),DATEADD(day,10,CAST(GETDATE() AS date)),1,SYSUTCDATETIME())" @{client=$clientId;trainer=$trainerId}
+    $zoneId=(Get-Content -Raw "$PSScriptRoot/../appsettings.json" | ConvertFrom-Json).Appointments.TimeZoneId
+    if($zoneId -eq 'Asia/Colombo') { $zoneId='Sri Lanka Standard Time' }
+    $today=[TimeZoneInfo]::ConvertTimeFromUtc([DateTime]::UtcNow,[TimeZoneInfo]::FindSystemTimeZoneById($zoneId)).Date
+    $null=Query 'INSERT INTO WorkoutLogs (ClientId,WorkoutPlanId,WorkoutDate,DurationMinutes,CaloriesBurned,Completed) VALUES (@client,@plan,@date,10,0,1)' @{client=$clientId;plan=$workout;date=$today}
+    $page=Get-Page $client '/Dashboard/Client'
+    Assert ($page.Content.Contains('Not available yet') -and -not $page.Content.Contains('0 kcal')) 'Zero-only workout logs show no available calorie data'
+    foreach($entry in @(@(0,125),@(-6,275),@(-7,800),@(1,900))) {
+        $null=Query 'INSERT INTO WorkoutLogs (ClientId,WorkoutPlanId,WorkoutDate,DurationMinutes,CaloriesBurned,Completed) VALUES (@client,@plan,@date,10,@calories,1)' @{client=$clientId;plan=$workout;date=$today.AddDays($entry[0]);calories=$entry[1]}
+    }
+    $page=Get-Page $client '/Dashboard/Client'
+    Assert ($page.Content.Contains('400 kcal')) 'Workout calorie total includes today and day six, excluding older and future entries'
+    Assert ((Get-Page $empty '/Dashboard/Client').Content.Contains('Not available yet')) 'Another client cannot see the workout calorie total'
+    $null=Query 'DELETE FROM WorkoutLogs WHERE ClientId=@client AND WorkoutDate>=@since' @{client=$clientId;since=$today.AddDays(-6)}
+    Assert ((Get-Page $client '/Dashboard/Client').Content.Contains('Not available yet')) 'Only older workout calories show Not available yet'
     $diet=Query "INSERT INTO DietPlans (ClientId,TrainerId,PlanName,DailyCalories,StartDate,EndDate,Status,CreatedAt) OUTPUT INSERTED.Id VALUES (@client,@trainer,'Dashboard diet',2100,CAST(GETDATE() AS date),DATEADD(day,10,CAST(GETDATE() AS date)),1,SYSUTCDATETIME())" @{client=$clientId;trainer=$trainerId}
     $page=Get-Page $client '/Dashboard/Client'
     Assert ($page.Content.Contains('Dashboard workout') -and $page.Content.Contains('Your workout plan has no exercises added yet.')) 'Active workout without exercises shows plan name and exact empty state'
@@ -88,11 +102,12 @@ try {
     }
     $null=Query 'UPDATE WorkoutPlans SET Status=2 WHERE ClientId=@client; UPDATE DietPlans SET Status=2 WHERE ClientId=@client' @{client=$clientId}
     $page=Get-Page $client '/Dashboard/Client'
-    Assert ($page.Content.Contains('No active workout plan available for today.') -and $page.Content.Contains('No active diet plan available for today.')) 'Inactive plans are excluded'
-    Assert ($page.Content.Contains('Current Weight') -and $page.Content.Contains('Target Weight') -and $page.Content.Contains('Next approved appointment')) 'Existing dashboard summary and appointment cards remain'
+    Assert ($page.Content.Contains('No active workout plan has been assigned for today.') -and $page.Content.Contains('No active diet plan has been assigned for today.')) 'Inactive plans are excluded'
+    Assert ($page.Content.Contains('Current Weight') -and $page.Content.Contains('Target Weight') -and $page.Content.Contains('Next Approved Appointment')) 'Existing dashboard summary and appointment cards remain'
     Write-Output "All $script:passed dashboard plan checks passed."
 }
 finally {
+    $null=Query 'DELETE FROM WorkoutLogs WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix)' @{prefix=($prefix+'%')}
     $null=Query 'DELETE FROM HealthMeasurements WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix)' @{prefix=($prefix+'%')}
     $null=Query 'DELETE FROM WorkoutExercises WHERE WorkoutPlanId IN (SELECT Id FROM WorkoutPlans WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix)); DELETE FROM DietMeals WHERE DietPlanId IN (SELECT Id FROM DietPlans WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix)); DELETE FROM WorkoutPlans WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix); DELETE FROM DietPlans WHERE ClientId IN (SELECT Id FROM AspNetUsers WHERE Email LIKE @prefix); DELETE FROM AspNetUsers WHERE Email LIKE @prefix' @{prefix=($prefix+'%')}
     $database.Dispose()

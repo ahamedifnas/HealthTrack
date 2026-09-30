@@ -1,22 +1,22 @@
 @model HealthTrack.ViewComponents.NavigationViewModel
 <details class="healthtrack-menu">
     <summary class="navbar-toggler"><span class="navbar-toggler-icon" aria-hidden="true"></span><span class="visually-hidden">Toggle navigation menu</span></summary>
-    <div class="healthtrack-menu-panel border-top pt-3 mt-2">
+    <div class="healthtrack-menu-panel navbar-collapse">
     <ul class="navbar-nav healthtrack-links">
-        @if (Model.ShowNotifications)
-        {
-            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">Notifications <span class="badge bg-success" aria-label="Unread notifications">@Model.UnreadNotifications</span></a></li>
-        }
         @foreach (var link in Model.Links)
         {
-            <li class="nav-item"><a class="nav-link text-dark" asp-controller="@link.Controller" asp-action="@link.Action">@link.Label</a></li>
+            <li class="nav-item"><a class="nav-link" asp-controller="@link.Controller" asp-action="@link.Action">@link.Label</a></li>
         }
     </ul>
-    <ul class="navbar-nav healthtrack-account border-top mt-2 pt-2">
+    <ul class="navbar-nav healthtrack-account ms-xl-auto">
+        @if (Model.ShowNotifications)
+        {
+            <li class="nav-item"><a class="nav-link notification-link" asp-controller="Notifications" asp-action="Index">Notifications <span class="badge dashboard-badge" aria-label="@Model.UnreadNotifications unread notifications">@Model.UnreadNotifications</span></a></li>
+        }
         @if (Model.IsAuthenticated)
         {
-            <li class="nav-item healthtrack-greeting"><span class="nav-link text-dark">Hello, @Model.FullName!</span></li>
-            <li class="nav-item"><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="nav-link btn btn-link text-dark">Logout</button></form></li>
+            <li class="nav-item healthtrack-greeting"><span class="nav-link" title="Hello, @Model.FullName!">Hello, @Model.FullName!</span></li>
+            <li class="nav-item"><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="nav-link btn btn-link logout-button">Logout</button></form></li>
         }
         else
         {
