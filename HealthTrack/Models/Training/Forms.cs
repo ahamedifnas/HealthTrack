@@ -15,6 +15,7 @@ public class PlanForm : IValidatableObject
     [BindRequired, Required, DataType(DataType.Date), Display(Name = "End date")]
     public DateOnly EndDate { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddDays(30));
     [ValidateNever] public List<SelectListItem> Clients { get; set; } = [];
+    [EnumDataType(typeof(PlanStatus))] public PlanStatus? Status { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext context)
     {
@@ -42,7 +43,7 @@ public class MealForm
 {
     [EnumDataType(typeof(MealType)), Display(Name = "Meal type")] public MealType MealType { get; set; } = MealType.Breakfast;
     [Required, StringLength(150), Display(Name = "Food name")] public string FoodName { get; set; } = string.Empty;
-    [Required, StringLength(100)] public string Quantity { get; set; } = string.Empty;
+    [Required, StringLength(100), PositiveQuantity] public string Quantity { get; set; } = string.Empty;
     [Range(0, 20000), Display(Name = "Calories (kcal)")] public int Calories { get; set; }
     [Range(typeof(decimal), "0", "10000"), Display(Name = "Protein (g)")] public decimal Protein { get; set; }
     [Range(typeof(decimal), "0", "10000"), Display(Name = "Carbohydrates (g)")] public decimal Carbohydrates { get; set; }
@@ -57,7 +58,8 @@ public class WorkoutLogForm
     [Display(Name = "Exercise (optional)")] public int? WorkoutExerciseId { get; set; }
     [BindRequired, DataType(DataType.Date), Display(Name = "Workout date")] public DateOnly WorkoutDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
     [Range(1, 1440), Display(Name = "Duration (minutes)")] public int DurationMinutes { get; set; }
-    [Range(0, 20000), Display(Name = "Calories burned (kcal)")] public int CaloriesBurned { get; set; }
+    [Range(1, 20000), Display(Name = "Calories burned (kcal)")] public int CaloriesBurned { get; set; }
+    public bool Completed { get; set; } = true;
     [StringLength(2000)] public string? Notes { get; set; }
     [ValidateNever] public List<SelectListItem> Plans { get; set; } = [];
     [ValidateNever] public List<SelectListItem> Exercises { get; set; } = [];
@@ -69,7 +71,7 @@ public class MealLogForm
     [BindRequired, DataType(DataType.Date), Display(Name = "Meal date")] public DateOnly MealDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
     [EnumDataType(typeof(MealType)), Display(Name = "Meal type")] public MealType MealType { get; set; } = MealType.Breakfast;
     [Required, StringLength(150), Display(Name = "Food name")] public string FoodName { get; set; } = string.Empty;
-    [Required, StringLength(100)] public string Quantity { get; set; } = string.Empty;
+    [Required, StringLength(100), PositiveQuantity] public string Quantity { get; set; } = string.Empty;
     [Range(0, 20000), Display(Name = "Calories (kcal)")] public int Calories { get; set; }
     [StringLength(2000)] public string? Notes { get; set; }
     [ValidateNever] public List<SelectListItem> Plans { get; set; } = [];

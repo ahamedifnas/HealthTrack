@@ -110,7 +110,19 @@ public class AdminTrainersController(UserManager<ApplicationUser> users,
         return RedirectToAction("Admin", "Dashboard");
     }
 
-    [HttpPost]
+    [HttpGet]
+    public async Task<IActionResult> Deactivate(string id)
+    {
+        var trainer = await users.FindByIdAsync(id);
+        if (trainer is null || !await users.IsInRoleAsync(trainer, AppRoles.Trainer)) return NotFound();
+        return View("Confirm", new ConfirmationViewModel("Deactivate trainer",
+            $"Deactivate {trainer.FullName}? Their plans, appointments and client history will be preserved.", "Deactivate", id, "Admin", null, "Dashboard"));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, ActionName("Deactivate")]
+    public Task<IActionResult> DeactivateConfirmed(string id) => SetActive(id, false);
+
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> SetActive(string id, [BindRequired] bool isActive)
     {
         if (!ModelState.IsValid) return BadRequest();

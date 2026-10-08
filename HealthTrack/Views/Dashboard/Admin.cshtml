@@ -37,11 +37,12 @@
                                 <td><span class="badge @trainer.StatusCss">@trainer.StatusLabel</span></td>
                                 <td><time datetime="@trainer.CreatedAt.ToString("O")">@trainer.CreatedAt.ToString("yyyy-MM-dd")</time></td>
                                 <td class="text-nowrap">
-                                    <a asp-controller="AdminTrainers" asp-action="Edit" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-success">Edit</a>
-                                    <form asp-controller="AdminTrainers" asp-action="SetActive" asp-route-id="@trainer.Id" method="post" class="d-inline">
+                                    <a asp-controller="Admin" asp-action="Details" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-success">Details</a>
+<a asp-controller="AdminTrainers" asp-action="Edit" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-success">Edit</a>
+                                    @if (trainer.IsActive) { <a asp-controller="AdminTrainers" asp-action="Deactivate" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-danger">Deactivate</a> } else { <form asp-controller="AdminTrainers" asp-action="SetActive" asp-route-id="@trainer.Id" method="post" class="d-inline">
                                         <input type="hidden" name="isActive" value="@trainer.NextActiveValue" />
                                         <button type="submit" class="btn btn-sm @trainer.StatusActionCss">@trainer.StatusAction</button>
-                                    </form>
+                                    </form> }
                                 </td>
                             </tr>
                         }
@@ -81,11 +82,11 @@
         else
         {
             <div class="table-responsive"><table class="table table-striped align-middle mb-0">
-                <thead><tr><th scope="col">Client</th><th scope="col">Trainer</th><th scope="col">Assigned (UTC)</th></tr></thead>
+                <thead><tr><th scope="col">Client</th><th scope="col">Trainer</th><th scope="col">Assigned (UTC)</th><th scope="col">Actions</th></tr></thead>
                 <tbody>
                 @foreach (var assignment in Model.Assignments)
                 {
-                    <tr><td>@assignment.ClientName <span class="small text-muted">(@assignment.ClientEmail)</span></td><td>@assignment.TrainerName <span class="small text-muted">(@assignment.TrainerEmail)</span></td><td>@assignment.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td></tr>
+                    <tr><td>@assignment.ClientName <span class="small text-muted">(@assignment.ClientEmail)</span></td><td>@assignment.TrainerName <span class="small text-muted">(@assignment.TrainerEmail)</span></td><td>@assignment.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td><td><div class="d-flex gap-2 flex-wrap"><a asp-controller="AdminAssignments" asp-action="Details" asp-route-id="@assignment.ClientId" class="btn btn-sm btn-outline-success">Details</a><a asp-controller="AdminAssignments" asp-action="Reassign" asp-route-id="@assignment.ClientId" class="btn btn-sm btn-outline-success">Reassign</a><a asp-controller="AdminAssignments" asp-action="Unassign" asp-route-id="@assignment.ClientId" class="btn btn-sm btn-outline-danger">Unassign</a></div></td></tr>
                 }
                 </tbody>
             </table></div>
@@ -136,3 +137,4 @@
         <div class="quick-actions"><a asp-controller="Reports" asp-action="Index" class="btn btn-success">View Reports</a><a asp-controller="AdminReports" asp-action="Print" class="btn btn-outline-success">Printable Report</a></div>
     </div>
 </div></section>
+

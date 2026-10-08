@@ -1,0 +1,28 @@
+@model HealthTrack.Models.Reports.ReportViewModel
+@if (Model.Filter is not null)
+{
+    <form method="get" class="row g-3 mb-3 report-controls">
+        @if (Model.DownloadKind is not null) { <input type="hidden" name="kind" value="@Model.DownloadKind" /> }
+        @if (Model.FilterClients is not null)
+        {
+            <div class="col-md-4"><label for="report-client">Client</label><select id="report-client" name="clientId" class="form-select"><option value="">All clients</option>
+            @foreach (var client in Model.FilterClients) { <option value="@client.Id" selected="@(client.Id == Model.FilterClientId)">@client.Name (@client.Email)</option> }
+            </select></div>
+        }
+        else if (Model.FilterClientId is not null) { <input type="hidden" name="clientId" value="@Model.FilterClientId" /> }
+        <div class="col-md-3"><label for="report-from">From Date</label><input id="report-from" name="FromDate" type="date" value="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+        <div class="col-md-3"><label for="report-to">To Date</label><input id="report-to" name="ToDate" type="date" value="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+        @if (Model.ShowStatusFilter)
+        {
+            <div class="col-md-3"><label for="report-status">Status</label><select id="report-status" name="Status" class="form-select"><option value="">All statuses</option>
+            @foreach (var status in Enum.GetValues<AppointmentStatus>()) { <option value="@status" selected="@(Model.Filter.Status == status)">@status</option> }
+            </select></div>
+        }
+        <div class="col-12"><button type="submit" class="btn btn-outline-success">Apply filters</button></div>
+    </form>
+    <p>@Model.Filter.Description</p>
+}
+@if (Model.DownloadUrl is not null)
+{
+    <p class="report-controls"><a href="@Model.DownloadUrl" class="btn btn-success" download>Download PDF</a></p>
+}

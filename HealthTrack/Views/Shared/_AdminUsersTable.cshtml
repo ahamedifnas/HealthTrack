@@ -8,7 +8,7 @@ else
 {
     <div class="card dashboard-card"><div class="table-responsive">
         <table class="table table-striped align-middle mb-0">
-            <thead><tr><th scope="col">Full name</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col">Created date (UTC)</th>@if (showRoles) { <th scope="col">Roles</th> }</tr></thead>
+            <thead><tr><th scope="col">Full name</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col">Created date (UTC)</th>@if (showRoles) { <th scope="col">Roles</th> }<th scope="col">Actions</th></tr></thead>
             <tbody>
             @foreach (var user in Model)
             {
@@ -17,6 +17,7 @@ else
                     <td><span class="badge @(user.IsActive ? "bg-success" : "bg-secondary")">@(user.IsActive ? "Active" : "Inactive")</span></td>
                     <td>@user.CreatedAt.ToString("yyyy-MM-dd")</td>
                     @if (showRoles) { <td>@(user.Roles.Count == 0 ? "No role assigned" : string.Join(", ", user.Roles))</td> }
+                    <td><div class="d-flex flex-wrap gap-2"><a asp-controller="Admin" asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-outline-success">Details</a><a asp-controller="Admin" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-success">Edit</a></div></td>
                 </tr>
             }
             </tbody>

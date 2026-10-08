@@ -10,11 +10,11 @@ else
 {
     <div class="card dashboard-card"><div class="table-responsive">
         <table class="table table-striped align-middle mb-0">
-            <thead><tr><th scope="col">Client</th><th scope="col">Trainer</th><th scope="col">Date</th><th scope="col">Time</th><th scope="col">Status</th></tr></thead>
+            <thead><tr><th scope="col">Client</th><th scope="col">Provider</th><th scope="col">Date</th><th scope="col">Time</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
             <tbody>
             @foreach (var appointment in Model)
             {
-                <tr><td>@appointment.Client.FullName</td><td>@appointment.Trainer.FullName</td><td>@appointment.AppointmentDate.ToString("yyyy-MM-dd")</td><td>@appointment.AppointmentTime.ToString("HH:mm")</td><td><partial name="_AppointmentStatus" model="appointment.Status" /></td></tr>
+                <tr><td>@appointment.Client.FullName</td><td>@appointment.ProviderName</td><td>@appointment.AppointmentDate.ToString("yyyy-MM-dd")</td><td>@appointment.AppointmentTime.ToString("HH:mm")</td><td><partial name="_AppointmentStatus" model="appointment.Status" /></td><td><a asp-controller="Appointments" asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-sm btn-outline-success">Details</a></td></tr>
             }
             </tbody>
         </table>

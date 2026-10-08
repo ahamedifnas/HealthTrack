@@ -7,6 +7,7 @@ namespace HealthTrack.Services;
 
 public static class FeaturePolicies
 {
+    public const string Provider = "ProviderFeatures";
     public const string Trainer = "TrainerFeatures";
     public const string Client = "ClientFeatures";
 }
@@ -18,7 +19,7 @@ public class PlanAccess(ApplicationDbContext database)
             .Select(x => x.Client).Where(x => x.IsActive && database.UserRoles.Any(ur =>
                 ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Client))
                 && !database.UserRoles.Any(ur => ur.UserId == x.Id && database.Roles.Any(r =>
-                    r.Id == ur.RoleId && (r.Name == AppRoles.Admin || r.Name == AppRoles.Trainer))));
+                    r.Id == ur.RoleId && (r.Name == AppRoles.Admin || r.Name == AppRoles.Trainer || r.Name == AppRoles.HealthcareProfessional))));
 
     public IQueryable<WorkoutPlan> Workouts(string trainerId)
     {

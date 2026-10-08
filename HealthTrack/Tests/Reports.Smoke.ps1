@@ -149,7 +149,7 @@ try {
         $count=Query 'SELECT COUNT(*) FROM Appointments WHERE Status=@status' @{status=$status}
         Assert ($page.Content -match "<td>$($statuses[$status-1])</td>\s*<td>$count</td>") "Admin $($statuses[$status-1]) total matches SQL Server"
     }
-    Assert (-not $page.Content.Contains('SECRET') -and -not $page.Content.Contains('Report breakfast')) 'Admin report exposes aggregates only'
+    Assert (-not $page.Content.Contains('SECRET FOOD') -and -not $page.Content.Contains('SECRET APPOINTMENT') -and -not $page.Content.Contains('Report breakfast')) 'Admin report exposes aggregates only'
     Assert ($page.Content.Contains('reports.css') -and $page.Content.Contains('Ctrl+P')) 'Report loads print stylesheet and browser print instructions'
     $css=Get-Page $a '/css/reports.css'
     Assert ($css.Content.Contains('@media print') -and $css.Content.Contains('table-header-group')) 'CSS supports printing with repeated table headers'

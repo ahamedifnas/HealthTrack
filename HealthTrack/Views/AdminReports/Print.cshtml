@@ -24,6 +24,12 @@
                 }
             </tbody>
         </table>
+        @foreach (var table in Model.Tables)
+        {
+            <h2>@table.Title</h2>
+            <table><thead><tr>@foreach (var column in table.Columns) { <th>@column</th> }</tr></thead>
+            <tbody>@foreach (var row in table.Rows) { <tr>@foreach (var cell in row) { <td>@cell</td> }</tr> }</tbody></table>
+        }
     </main>
 </body>
 </html>

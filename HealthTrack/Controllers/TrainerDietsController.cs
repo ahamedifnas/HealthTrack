@@ -66,7 +66,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
         var model = new DietPlanForm
         {
             ClientId = plan.ClientId, PlanName = plan.PlanName, Description = plan.Description,
-            StartDate = plan.StartDate, EndDate = plan.EndDate, DailyCalories = plan.DailyCalories
+            StartDate = plan.StartDate, EndDate = plan.EndDate, Status = plan.Status, DailyCalories = plan.DailyCalories
         };
         await PopulateClients(model, plan.ClientId);
         ViewData["Title"] = "Edit diet plan";
@@ -91,6 +91,7 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
         plan.Description = model.Description;
         plan.StartDate = model.StartDate;
         plan.EndDate = model.EndDate;
+        if (model.Status is { } status) plan.Status = status;
         plan.DailyCalories = model.DailyCalories;
         await database.SaveChangesAsync();
         TempData["Success"] = "Diet plan updated.";
@@ -216,10 +217,63 @@ public class TrainerDietsController(ApplicationDbContext database, PlanAccess ac
         return RedirectToAction(nameof(Details), new { id = item.DietPlanId });
     }
 
+
+    [HttpGet]
+    public async Task<IActionResult> MealDetails(int id)
+    {
+        var item = await database.DietMeals.AsNoTracking().Include(x => x.DietPlan)
+            .SingleOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.DietPlanId));
+        return item is null ? NotFound() : View("MealDetails", item);
+    }
+
+    [HttpGet, ActionName("Delete")]
+    public async Task<IActionResult> ConfirmDelete(int id)
+    {
+        var plan = await OwnedPlans.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+        if (plan is null) return NotFound();
+        var history = await database.MealLogs.AnyAsync(x => x.DietPlanId == id);
+        return View("Confirm", new HealthTrack.Models.ConfirmationViewModel(
+            history ? "Deactivate diet plan" : "Delete diet plan",
+            history ? $"Deactivate {plan.PlanName}? Its logs and history will be preserved."
+                : $"Delete {plan.PlanName} and its meals? If logs have been added, the plan will be deactivated instead.",
+            "Delete", id, "Details", id));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await using var transaction = await database.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        var plan = await OwnedPlans.Include(x => x.Meals).SingleOrDefaultAsync(x => x.Id == id);
+        if (plan is null) return NotFound();
+        var history = await database.MealLogs.AnyAsync(x => x.DietPlanId == id);
+        if (history) plan.Status = PlanStatus.Inactive;
+        else
+        {
+            database.DietMeals.RemoveRange(plan.Meals);
+            database.DietPlans.Remove(plan);
+        }
+        notifications.RemovedPlan(plan.ClientId, plan.PlanName, NotificationType.Diet, history);
+        await database.SaveChangesAsync();
+        await transaction.CommitAsync();
+        TempData["Success"] = history ? "Plan deactivated. All logs and history have been preserved." : "Plan deleted.";
+        return RedirectToAction(nameof(Index));
+    }
+
     private async Task NotifyPlanUpdate(int planId)
     {
         var plan = await OwnedPlans.SingleAsync(x => x.Id == planId);
         notifications.Plan(plan.ClientId, plan.PlanName, NotificationType.Diet);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Logs(string clientId)
+    {
+        var client = await access.Clients(UserId).FirstOrDefaultAsync(x => x.Id == clientId);
+        if (client is null) return NotFound();
+        ViewData["Title"] = $"Meal history: {client.FullName}";
+        return View("~/Views/Diets/History.cshtml", await database.MealLogs.AsNoTracking().Include(x => x.DietPlan)
+            .Where(x => x.ClientId == clientId && OwnedPlans.Any(p => p.Id == x.DietPlanId))
+            .OrderByDescending(x => x.MealDate).ThenByDescending(x => x.Id).ToListAsync());
     }
 
     private async Task PopulateClients(PlanForm model, string? clientId = null)

@@ -1,4 +1,4 @@
-@model PlanViewModel
+﻿@model PlanViewModel
 @{
     ViewData["Title"] = Model.PlanName;
 }
@@ -16,7 +16,10 @@
         <button type="submit" class="btn btn-outline-secondary">@Model.StatusAction</button>
     </form>
     
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to plans</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete or deactivate</a>
+<a asp-action="Logs" asp-route-clientId="@Model.ClientId" class="btn btn-outline-secondary">Client meal logs</a>
+<a asp-action="Index" class="btn btn-outline-secondary">Back to plans</a>
     </div>
 </div></div>
 <partial name="_DietMeals" model="Model" />
+

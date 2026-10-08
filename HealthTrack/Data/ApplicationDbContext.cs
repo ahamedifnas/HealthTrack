@@ -9,6 +9,8 @@ namespace HealthTrack.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<ReminderDelivery> ReminderDeliveries => Set<ReminderDelivery>();
+    public DbSet<HealthcareProfessional> HealthcareProfessionals => Set<HealthcareProfessional>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<HealthMeasurement> HealthMeasurements => Set<HealthMeasurement>();
 
@@ -24,6 +26,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.Entity<ReminderDelivery>().HasKey(x => new { x.UserId, x.ReminderKey });
+        builder.Entity<ReminderDelivery>().HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<HealthcareProfessional>().HasOne(x => x.User).WithOne().HasForeignKey<HealthcareProfessional>(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Appointment>().HasOne(x => x.HealthcareProfessional).WithMany().HasForeignKey(x => x.HealthcareProfessionalId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Appointment>().ToTable(t => t.HasCheckConstraint("CK_Appointment_ExactlyOneProvider",
+            "([TrainerId] IS NOT NULL AND [HealthcareProfessionalId] IS NULL) OR ([TrainerId] IS NULL AND [HealthcareProfessionalId] IS NOT NULL)"));
+        builder.Entity<Appointment>().HasIndex(x => new { x.HealthcareProfessionalId, x.AppointmentDate, x.AppointmentTime })
+            .IsUnique().HasFilter("[Status] IN (1, 2) AND [HealthcareProfessionalId] IS NOT NULL");
         builder.Entity<Notification>().HasOne<ApplicationUser>().WithMany()
             .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         builder.Entity<Notification>().HasIndex(x => new { x.UserId, x.IsRead, x.CreatedAt });
@@ -40,7 +50,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Appointment>().Property(x => x.AppointmentTime).HasPrecision(0);
         // Only Pending/Approved records reserve a slot. The database also prevents racing bookings.
         builder.Entity<Appointment>().HasIndex(x => new { x.TrainerId, x.AppointmentDate, x.AppointmentTime })
-            .IsUnique().HasFilter("[Status] IN (1, 2)");
+            .IsUnique().HasFilter("[Status] IN (1, 2) AND [TrainerId] IS NOT NULL");
         builder.Entity<Appointment>().HasIndex(x => new { x.ClientId, x.AppointmentDate, x.AppointmentTime })
             .IsUnique().HasFilter("[Status] IN (1, 2)");
         builder.Entity<TrainerClient>().Property(x => x.AssignedAt).HasDefaultValueSql("GETUTCDATE()");
@@ -56,8 +66,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<DietMeal>().HasOne(x => x.DietPlan).WithMany(x => x.Meals).HasForeignKey(x => x.DietPlanId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<WorkoutLog>().HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<WorkoutLog>().HasOne(x => x.WorkoutPlan).WithMany().HasForeignKey(x => x.WorkoutPlanId).OnDelete(DeleteBehavior.Restrict);
-        // Deleting an exercise preserves workout history; the optional exercise reference is cleared.
-        builder.Entity<WorkoutLog>().HasOne(x => x.WorkoutExercise).WithMany().HasForeignKey(x => x.WorkoutExerciseId).OnDelete(DeleteBehavior.SetNull);
+        // Archive exercises instead of destroying references from historical logs.
+        builder.Entity<WorkoutLog>().HasOne(x => x.WorkoutExercise).WithMany().HasForeignKey(x => x.WorkoutExerciseId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<MealLog>().HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<MealLog>().HasOne(x => x.DietPlan).WithMany().HasForeignKey(x => x.DietPlanId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<DietMeal>().Property(x => x.Protein).HasPrecision(10, 2);

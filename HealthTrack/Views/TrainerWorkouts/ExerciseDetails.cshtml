@@ -1,0 +1,15 @@
+@model WorkoutExercise
+@{ ViewData["Title"] = "Exercise Details"; }
+<section class="dashboard-heading"><h1>Exercise Details</h1><p class="mb-0">@Model.ExerciseName</p></section>
+<div class="card dashboard-card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-3">Workout plan</dt><dd class="col-sm-9 text-break">@Model.WorkoutPlan.PlanName</dd>
+        <dt class="col-sm-3">Sets</dt><dd class="col-sm-9 text-break">@Model.Sets</dd>
+        <dt class="col-sm-3">Repetitions</dt><dd class="col-sm-9 text-break">@Model.Repetitions</dd>
+        <dt class="col-sm-3">Duration</dt><dd class="col-sm-9 text-break">@Model.DurationMinutes minutes</dd>
+        <dt class="col-sm-3">Calories target</dt><dd class="col-sm-9 text-break">@Model.CaloriesTarget kcal</dd>
+        <dt class="col-sm-3">Instructions</dt><dd class="col-sm-9 text-break">@(Model.Instructions ?? "No instructions recorded.")</dd>
+    </dl>
+    @if (Model.IsArchived) { <p>Archived. Retained for workout history.</p> }
+    <div class="quick-actions">@if (!Model.IsArchived) { <a asp-action="EditExercise" asp-route-id="@Model.Id" class="btn btn-success">Edit</a><a asp-action="DeleteExercise" asp-route-id="@Model.Id" class="btn btn-outline-danger">Archive</a> }<a asp-action="Details" asp-route-id="@Model.WorkoutPlanId" class="btn btn-outline-secondary">Back</a></div>
+</div></div>

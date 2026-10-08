@@ -1,8 +1,8 @@
-@model HealthTrack.Models.Measurements.AddMeasurementViewModel
-@{ ViewData["Title"] = "Add Health Measurement"; }
-<section class="dashboard-heading"><h1>Add Health Measurement</h1><p class="mb-0">Record one measurement per day. BMI is calculated from your weight and height.</p></section>
+﻿@model HealthTrack.Models.Measurements.AddMeasurementViewModel
+@{ var editing = ViewData["IsEditing"] is true; ViewData["Title"] = editing ? "Edit Health Measurement" : "Add Health Measurement"; }
+<section class="dashboard-heading"><h1>@ViewData["Title"]</h1><p class="mb-0">Record one measurement per day. BMI is calculated from your weight and height.</p></section>
 <div class="card dashboard-card"><div class="card-body">
-<form asp-action="Create" method="post">
+<form asp-action="@(editing ? "Edit" : "Create")" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
     <div asp-validation-summary="All" class="text-danger" role="alert"></div>
     <div class="row g-3">
     <div class="col-12 col-md-6"><label asp-for="MeasurementDate" class="form-label"></label><input asp-for="MeasurementDate" type="date"  class="form-control" /><span asp-validation-for="MeasurementDate" class="text-danger"></span></div>
@@ -18,3 +18,4 @@
     <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
 </form>
 </div></div>
+

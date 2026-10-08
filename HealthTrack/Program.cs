@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews(options =>
     {
         options.Filters.Add<ViewPresentationFilter>();
+        options.Filters.Add<ReminderFilter>();
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         options.Filters.Add(new ResponseCacheAttribute { NoStore = true, Location = ResponseCacheLocation.None });
     })
@@ -56,17 +57,24 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 builder.Services.AddScoped<PlanAccess>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<ReminderService>();
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<DownloadReportService>();
+builder.Services.AddSingleton<IPdfReportService, PdfReportService>();
+PdfSharp.Fonts.GlobalFontSettings.FontResolver = new ReportFontResolver(builder.Configuration);
+builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddScoped<AdminDashboardData>();
 builder.Services.AddSingleton<AppointmentClock>();
 builder.Services.AddExceptionHandler<SafeExceptionHandler>();
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-    options.AddPolicy(FeaturePolicies.Trainer, policy => policy.RequireRole(AppRoles.Trainer)
+    options.AddPolicy(FeaturePolicies.Provider, policy => policy.RequireRole(AppRoles.Trainer, AppRoles.HealthcareProfessional)
         .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin)));
+    options.AddPolicy(FeaturePolicies.Trainer, policy => policy.RequireRole(AppRoles.Trainer)
+        .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin) && !context.User.IsInRole(AppRoles.HealthcareProfessional)));
     options.AddPolicy(FeaturePolicies.Client, policy => policy.RequireRole(AppRoles.Client)
-        .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin) && !context.User.IsInRole(AppRoles.Trainer)));
+        .RequireAssertion(context => !context.User.IsInRole(AppRoles.Admin) && !context.User.IsInRole(AppRoles.Trainer) && !context.User.IsInRole(AppRoles.HealthcareProfessional)));
 });
 
 var app = builder.Build();

@@ -1,0 +1,13 @@
+@model HealthTrack.Models.Notification
+@{ ViewData["Title"] = "Notification Details"; }
+<section class="dashboard-heading"><h1>Notification Details</h1><p class="mb-0">@Model.Title</p></section>
+<div class="card dashboard-card"><div class="card-body">
+    <p class="text-break">@Model.Message</p>
+    <p class="text-muted">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC</p>
+    <span class="badge @(Model.IsRead ? "status-muted" : "status-positive")">@(Model.IsRead ? "Read" : "Unread")</span>
+    <div class="quick-actions mt-3">
+        <form asp-action="@(Model.IsRead ? "MarkUnread" : "MarkRead")" asp-route-id="@Model.Id" method="post"><button type="submit" class="btn btn-success">@(Model.IsRead ? "Mark unread" : "Mark read")</button></form>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to notifications</a>
+    </div>
+</div></div>

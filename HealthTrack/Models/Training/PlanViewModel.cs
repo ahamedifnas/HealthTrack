@@ -26,7 +26,7 @@ public class PlanViewModel
         Id = plan.Id, ClientId = plan.ClientId, ClientName = plan.Client?.FullName ?? string.Empty,
         TrainerName = plan.Trainer?.FullName ?? string.Empty, PlanName = plan.PlanName,
         Description = plan.Description, StartDate = plan.StartDate, EndDate = plan.EndDate,
-        Status = plan.Status, CanManage = manage, Exercises = plan.Exercises.OrderBy(x => x.Id).ToList()
+        Status = plan.Status, CanManage = manage, Exercises = plan.Exercises.Where(x => !x.IsArchived).OrderBy(x => x.Id).ToList()
     };
 
     public static PlanViewModel From(DietPlan plan, bool manage) => new()

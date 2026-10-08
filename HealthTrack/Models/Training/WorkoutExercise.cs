@@ -6,6 +6,7 @@ public class WorkoutExercise
 {
     public int Id { get; set; }
     public int WorkoutPlanId { get; set; }
+    public bool IsArchived { get; set; }
     [MaxLength(100)] public string ExerciseName { get; set; } = string.Empty;
     public int Sets { get; set; }
     public int Repetitions { get; set; }

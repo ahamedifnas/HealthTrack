@@ -26,6 +26,7 @@ public class NavigationViewComponent(UserManager<ApplicationUser> users, Applica
             if (principal.IsInRole(AppRoles.Admin))
             {
                 Add("Admin", "Clients", "Clients"); Add("Admin", "Appointments", "Appointments");
+                Add("AdminHealthcareProfessionals", "Index", "Healthcare Professionals");
                 Add("Admin", "Users", "Users"); Add("Progress", "Summary", "Health Summary");
                 Add("Reports", "Index", "Reports");
             }
@@ -35,6 +36,8 @@ public class NavigationViewComponent(UserManager<ApplicationUser> users, Applica
                 Add("TrainerDiets", "Index", "Diet Plans"); Add("Appointments", "Index", "Appointments");
                 Add("Reports", "Index", "Reports");
             }
+            else if (principal.IsInRole(AppRoles.HealthcareProfessional))
+            { Add("Appointments", "Index", "Appointments"); }
             else if (principal.IsInRole(AppRoles.Client))
             {
                 Add("Measurements", "Index", "Measurements"); Add("Progress", "Index", "Progress");
@@ -44,7 +47,7 @@ public class NavigationViewComponent(UserManager<ApplicationUser> users, Applica
             }
         }
         var user = authenticated ? await users.GetUserAsync(principal) : null;
-        var showNotifications = authenticated && (principal.IsInRole(AppRoles.Client) || principal.IsInRole(AppRoles.Trainer));
+        var showNotifications = authenticated && (principal.IsInRole(AppRoles.Client) || principal.IsInRole(AppRoles.Trainer) || principal.IsInRole(AppRoles.HealthcareProfessional));
         var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         var unread = showNotifications
             ? await database.Notifications.CountAsync(x => x.UserId == userId && !x.IsRead) : 0;

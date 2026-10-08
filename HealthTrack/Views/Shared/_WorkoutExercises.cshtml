@@ -19,8 +19,9 @@ else
                 @if (Model.CanManage)
                 {
                     <td>
+                        <a asp-controller="TrainerWorkouts" asp-action="ExerciseDetails" asp-route-id="@exercise.Id" class="btn btn-sm btn-outline-success">Details</a>
                         <a asp-controller="TrainerWorkouts" asp-action="EditExercise" asp-route-id="@exercise.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <a asp-controller="TrainerWorkouts" asp-action="DeleteExercise" asp-route-id="@exercise.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                        <a asp-controller="TrainerWorkouts" asp-action="DeleteExercise" asp-route-id="@exercise.Id" class="btn btn-sm btn-outline-danger">Archive</a>
                     </td>
                 }
             </tr>

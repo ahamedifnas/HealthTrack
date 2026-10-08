@@ -62,7 +62,7 @@ try {
     Assert ($page.Content.Contains($trainerEmail) -and $page.Content.IndexOf('trainer-list-heading') -gt $page.Content.IndexOf('total-appointments')) 'New trainer appears below dashboard cards'
     $created=Query 'SELECT CreatedAt FROM AspNetUsers WHERE Id=@id' @{id=$trainerId}
     Assert ($page.Content.Contains('Created Date') -and $page.Content.Contains($created.ToString('yyyy-MM-dd'))) 'Dashboard displays trainer creation date'
-    Assert ($page.Content.Contains('href="/AdminTrainers/Edit/') -and $page.Content.Contains('/AdminTrainers/SetActive/')) 'Dashboard includes MVC Edit and status controls'
+    Assert ($page.Content.Contains('href="/AdminTrainers/Edit/') -and $page.Content.Contains('/AdminTrainers/Deactivate/')) 'Dashboard includes MVC Edit and status controls'
     Assert ((Query 'SELECT IsActive FROM AspNetUsers WHERE Id=@id' @{id=$trainerId}) -eq $true) 'Trainer is active despite forged IsActive value'
     Assert ((Query 'SELECT r.Name FROM AspNetUserRoles ur JOIN AspNetRoles r ON r.Id=ur.RoleId WHERE ur.UserId=@id' @{id=$trainerId}) -eq 'Trainer') 'Trainer role assigned despite forged Admin role'
     $hash=Query 'SELECT PasswordHash FROM AspNetUsers WHERE Id=@id' @{id=$trainerId}

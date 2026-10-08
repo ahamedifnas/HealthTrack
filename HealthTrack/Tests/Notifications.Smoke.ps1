@@ -135,7 +135,7 @@ try {
     $notice=Query 'SELECT MIN(Id) FROM Notifications WHERE UserId=@id' @{id=$client.Id}
     $unread=Query 'SELECT COUNT(*) FROM Notifications WHERE UserId=@id AND IsRead=0' @{id=$client.Id}
     $page=Get-Page $c '/Notifications'
-    Assert ($page.Content.Contains("aria-label=`"Unread notifications`">$unread</span>")) 'Navigation shows exact unread count'
+    Assert ($page.Content.Contains("aria-label=`"$unread unread notifications`">$unread</span>")) 'Navigation shows exact unread count'
     Assert ($page.Content.Contains('Unread') -and -not $page.Content.Contains('<script')) 'Inbox displays unread status without JavaScript'
     $page=Get-Page $o ('/Notifications?userId='+$client.Id)
     Assert (-not $page.Content.Contains('Appointment approved') -and $page.Content.Contains('No notifications yet.')) 'Forged user query cannot read another inbox'
@@ -145,7 +145,7 @@ try {
     $page=Submit $c '/Notifications' "/Notifications/MarkRead/$notice" @{UserId=$other.Id;IsRead='false'}
     Assert ((Query 'SELECT IsRead FROM Notifications WHERE Id=@id' @{id=$notice}) -eq $true) 'Owner can mark read; posted owner/status ignored'
     $expected=$unread-1
-    Assert ($page.Content.Contains("aria-label=`"Unread notifications`">$expected</span>") -and $page.Content.Contains('>Read</span>')) 'Read status and navigation count update'
+    Assert ($page.Content.Contains("aria-label=`"$expected unread notifications`">$expected</span>") -and $page.Content.Contains('>Read</span>')) 'Read status and navigation count update'
     $null=Submit $c '/Notifications' "/Notifications/MarkRead/$notice" @{}
     Assert ((Query 'SELECT COUNT(*) FROM Notifications WHERE UserId=@id AND IsRead=0' @{id=$client.Id}) -eq $expected) 'Repeated mark read is idempotent'
     Write-Output "All $script:passed notification checks passed."

@@ -1,4 +1,6 @@
-@model List<HealthTrack.Models.Admin.AdminUserListItem>
+﻿@model List<HealthTrack.Models.Admin.AdminUserListItem>
 @{ ViewData["Title"] = "Clients"; }
 <section class="dashboard-heading"><h1>Clients</h1><p class="mb-0">All HealthTrack client accounts.</p></section>
+<div class="quick-actions mb-4"><a asp-controller="Admin" asp-action="CreateClient" class="btn btn-success">Create Client</a><a asp-controller="AdminTrainers" asp-action="Create" class="btn btn-outline-success">Create Trainer</a></div>
 <partial name="_AdminUsersTable" model="Model" />
+

@@ -21,6 +21,7 @@
                     @if (Model.CanManage)
                     {
                         <td>
+                            <a asp-controller="TrainerDiets" asp-action="MealDetails" asp-route-id="@meal.Id" class="btn btn-sm btn-outline-success">Details</a>
                             <a asp-controller="TrainerDiets" asp-action="EditMeal" asp-route-id="@meal.Id" class="btn btn-sm btn-outline-primary">Edit</a>
                             <a asp-controller="TrainerDiets" asp-action="DeleteMeal" asp-route-id="@meal.Id" class="btn btn-sm btn-outline-danger">Delete</a>
                         </td>

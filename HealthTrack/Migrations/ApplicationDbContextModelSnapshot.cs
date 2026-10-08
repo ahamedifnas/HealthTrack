@@ -124,6 +124,9 @@ namespace HealthTrack.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("HealthcareProfessionalId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -143,7 +146,6 @@ namespace HealthTrack.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TrainerId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -152,11 +154,18 @@ namespace HealthTrack.Migrations
                         .IsUnique()
                         .HasFilter("[Status] IN (1, 2)");
 
+                    b.HasIndex("HealthcareProfessionalId", "AppointmentDate", "AppointmentTime")
+                        .IsUnique()
+                        .HasFilter("[Status] IN (1, 2) AND [HealthcareProfessionalId] IS NOT NULL");
+
                     b.HasIndex("TrainerId", "AppointmentDate", "AppointmentTime")
                         .IsUnique()
-                        .HasFilter("[Status] IN (1, 2)");
+                        .HasFilter("[Status] IN (1, 2) AND [TrainerId] IS NOT NULL");
 
-                    b.ToTable("Appointments");
+                    b.ToTable("Appointments", t =>
+                        {
+                            t.HasCheckConstraint("CK_Appointment_ExactlyOneProvider", "([TrainerId] IS NOT NULL AND [HealthcareProfessionalId] IS NULL) OR ([TrainerId] IS NULL AND [HealthcareProfessionalId] IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("HealthTrack.Models.HealthMeasurement", b =>
@@ -208,6 +217,21 @@ namespace HealthTrack.Migrations
                     b.ToTable("HealthMeasurements");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.HealthcareProfessional", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Specialty")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("HealthcareProfessionals");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -244,6 +268,23 @@ namespace HealthTrack.Migrations
                     b.HasIndex("UserId", "IsRead", "CreatedAt");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.ReminderDelivery", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ReminderKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UserId", "ReminderKey");
+
+                    b.ToTable("ReminderDeliveries");
                 });
 
             modelBuilder.Entity("HealthTrack.Models.Training.DietMeal", b =>
@@ -435,6 +476,9 @@ namespace HealthTrack.Migrations
                     b.Property<string>("Instructions")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
 
                     b.Property<int>("Repetitions")
                         .HasColumnType("int");
@@ -684,13 +728,19 @@ namespace HealthTrack.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("HealthTrack.Models.HealthcareProfessional", "HealthcareProfessional")
+                        .WithMany()
+                        .HasForeignKey("HealthcareProfessionalId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("HealthTrack.Models.ApplicationUser", "Trainer")
                         .WithMany()
                         .HasForeignKey("TrainerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Client");
+
+                    b.Navigation("HealthcareProfessional");
 
                     b.Navigation("Trainer");
                 });
@@ -706,7 +756,27 @@ namespace HealthTrack.Migrations
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.HealthcareProfessional", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("HealthTrack.Models.HealthcareProfessional", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.Notification", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.ReminderDelivery", b =>
                 {
                     b.HasOne("HealthTrack.Models.ApplicationUser", null)
                         .WithMany()
@@ -805,7 +875,7 @@ namespace HealthTrack.Migrations
                     b.HasOne("HealthTrack.Models.Training.WorkoutExercise", "WorkoutExercise")
                         .WithMany()
                         .HasForeignKey("WorkoutExerciseId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HealthTrack.Models.Training.WorkoutPlan", "WorkoutPlan")
                         .WithMany()

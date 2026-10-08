@@ -17,12 +17,20 @@
             </div>
             <p class="text-break">@notification.Message</p>
             <p class="small text-muted">@notification.Type · @notification.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC</p>
+            <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Details" asp-route-id="@notification.Id" class="btn btn-outline-success btn-sm">Details</a>
+            @if (notification.IsRead)
+            {
+                <form asp-action="MarkUnread" asp-route-id="@notification.Id" method="post"><button class="btn btn-outline-success btn-sm" type="submit">Mark as unread</button></form>
+            }
             @if (!notification.IsRead)
             {
                 <form asp-action="MarkRead" asp-route-id="@notification.Id" method="post">
                     <button class="btn btn-outline-success btn-sm" type="submit">Mark as read</button>
                 </form>
             }
+            <a asp-action="Delete" asp-route-id="@notification.Id" class="btn btn-outline-danger btn-sm">Delete</a>
+            </div>
         </div>
     </article>
 }

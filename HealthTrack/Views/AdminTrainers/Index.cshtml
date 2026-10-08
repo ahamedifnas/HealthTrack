@@ -19,10 +19,10 @@ else
                     <td><span class="badge @trainer.StatusCss">@trainer.StatusLabel</span></td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <form asp-action="SetActive" asp-route-id="@trainer.Id" method="post" class="d-inline">
+                        @if (trainer.IsActive) { <a asp-controller="AdminTrainers" asp-action="Deactivate" asp-route-id="@trainer.Id" class="btn btn-sm btn-outline-danger">Deactivate</a> } else { <form asp-action="SetActive" asp-route-id="@trainer.Id" method="post" class="d-inline">
                             <input type="hidden" name="isActive" value="@trainer.NextActiveValue" />
                             <button type="submit" class="btn btn-sm @trainer.StatusActionCss">@trainer.StatusAction</button>
-                        </form>
+                        </form> }
                     </td>
                 </tr>
             }

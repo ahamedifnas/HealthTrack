@@ -1,5 +1,5 @@
-@model WorkoutLogForm
-@{ ViewData["Title"] = "Log Workout"; }
+﻿@model WorkoutLogForm
+@{ var editing = ViewData["IsEditing"] is true; ViewData["Title"] = editing ? "Edit Workout Log" : "Log Workout"; }
 <h1>@ViewData["Title"]</h1>
 @if (Model.Plans.Count == 0)
 {
@@ -7,14 +7,16 @@
 }
 else
 {
-    <p class="text-muted">Record a completed workout. Choose a plan and click Load exercises before filling in the workout fields. The date must be within the plan dates and cannot be in the future.</p>
-    <form asp-action="Log" method="get" class="mb-3">
+    <p class="text-muted">@(editing ? "Correct your recorded workout. The original plan is preserved." : "Record a completed workout. Choose a plan and click Load exercises before filling in the workout fields.") The date must be within the plan dates and cannot be in the future.</p>
+    @if (!editing) {
+<form asp-action="Log" method="get" class="mb-3">
         <label for="planId" class="form-label">Choose workout plan</label>
         <select id="planId" name="planId" class="form-select" asp-items="Model.Plans"></select>
         <button type="submit" class="btn btn-outline-primary mt-2">Load exercises</button>
     </form>
+    }
     <div class="card dashboard-card"><div class="card-body">
-    <form asp-action="Log" method="post">
+    <form asp-action="@(editing ? "EditLog" : "Log")" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
         <div asp-validation-summary="All" class="text-danger" role="alert"></div>
         <div class="row"><div class="col-12 col-md-6 mb-3">
     <label asp-for="WorkoutPlanId" class="form-label"></label>
@@ -46,8 +48,10 @@ else
     <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
     <span asp-validation-for="Notes" class="text-danger"></span>
 </div></div>
-        <button class="btn btn-primary" type="submit">Save completed workout</button>
+        @if (editing) { <div class="form-check mb-3"><input asp-for="Completed" class="form-check-input" /><label asp-for="Completed" class="form-check-label">Completed workout</label></div> }
+<button class="btn btn-primary" type="submit">@(editing ? "Save changes" : "Save completed workout")</button>
         <a asp-action="History" class="btn btn-outline-secondary">View history</a>
     </form>
     </div></div>
 }
+

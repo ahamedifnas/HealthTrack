@@ -1,0 +1,6 @@
+@model List<HealthcareProfessional>
+@{ ViewData["Title"] = "Healthcare Professionals"; }
+<section class="dashboard-heading"><h1>Healthcare Professionals</h1><a asp-action="Create" class="btn btn-primary">Add healthcare professional</a></section>
+<div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Specialty</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var profile in Model) { <tr><td>@profile.User.FullName</td><td>@profile.User.Email</td><td>@profile.Specialty</td><td>@(profile.User.IsActive ? "Active" : "Inactive")</td><td><a asp-action="Details" asp-route-id="@profile.UserId" class="btn btn-sm btn-outline-success">View Details</a> <a asp-controller="Admin" asp-action="Delete" asp-route-id="@profile.UserId" class="btn btn-sm btn-outline-danger">Deactivate</a> <a asp-action="Edit" asp-route-id="@profile.UserId">Edit</a></td></tr> }
+</tbody></table></div>

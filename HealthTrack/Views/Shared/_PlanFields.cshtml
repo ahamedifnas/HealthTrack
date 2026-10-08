@@ -5,6 +5,10 @@
     <select asp-for="ClientId" class="form-select" asp-items="Model.Clients"></select>
     <span asp-validation-for="ClientId" class="text-danger"></span>
 </div>
+@if (Model.Status is not null)
+{
+    <div class="mb-3"><label asp-for="Status" class="form-label"></label><select asp-for="Status" asp-items="Html.GetEnumSelectList<PlanStatus>()" class="form-select"></select><span asp-validation-for="Status" class="text-danger"></span></div>
+}
 <div class="col-12 col-md-6 mb-3">
     <label asp-for="PlanName" class="form-label"></label>
     <input asp-for="PlanName" class="form-control" >

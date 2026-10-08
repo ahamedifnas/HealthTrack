@@ -1,0 +1,11 @@
+@model HealthTrack.Models.Admin.CreateHealthcareProfessionalForm
+@{ ViewData["Title"] = "Create Healthcare Professional"; }
+<h1>@ViewData["Title"]</h1>
+<form method="post" asp-action="Create" asp-route-id="@ViewContext.RouteData.Values["id"]">
+<div asp-validation-summary="All" class="text-danger"></div>
+<div class="mb-3"><label asp-for="FullName" class="form-label"></label><input asp-for="FullName" class="form-control" /><span asp-validation-for="FullName" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Specialty" class="form-label"></label><input asp-for="Specialty" class="form-control" /><span asp-validation-for="Specialty" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" /><span asp-validation-for="Password" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="ConfirmPassword" class="form-label"></label><input asp-for="ConfirmPassword" class="form-control" /><span asp-validation-for="ConfirmPassword" class="text-danger"></span></div>
+<button class="btn btn-primary" type="submit">Save</button> <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></form>

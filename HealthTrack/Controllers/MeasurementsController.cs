@@ -16,9 +16,76 @@ namespace HealthTrack.Controllers;
 public class MeasurementsController(ApplicationDbContext database, UserManager<ApplicationUser> users, AppointmentClock clock) : Controller
 {
     private string ClientId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+    private IQueryable<HealthMeasurement> OwnMeasurements => database.HealthMeasurements.Where(x => x.ClientId == ClientId);
 
-    public async Task<IActionResult> Index() => View(await database.HealthMeasurements.AsNoTracking()
-        .Where(x => x.ClientId == ClientId).OrderByDescending(x => x.MeasurementDate).ToListAsync());
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        var measurement = await OwnMeasurements.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+        return measurement is null ? NotFound() : View(measurement);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var item = await OwnMeasurements.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+        if (item is null) return NotFound();
+        ViewData["IsEditing"] = true;
+        return View("Create", new AddMeasurementViewModel { MeasurementDate = item.MeasurementDate, WeightKg = item.WeightKg,
+            HeightCm = item.HeightCm, BodyFatPercentage = item.BodyFatPercentage, HeartRate = item.HeartRate,
+            CaloriesBurned = item.CaloriesBurned, Notes = item.Notes });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, AddMeasurementViewModel model)
+    {
+        var item = await OwnMeasurements.SingleOrDefaultAsync(x => x.Id == id);
+        if (item is null) return NotFound();
+        ViewData["IsEditing"] = true;
+        var today = DateOnly.FromDateTime(clock.Now);
+        if (model.MeasurementDate is { } date && (date > today || date < new DateOnly(1900, 1, 1)))
+            ModelState.AddModelError(nameof(model.MeasurementDate), "Choose a date between 1900-01-01 and today.");
+        if (await OwnMeasurements.AnyAsync(x => x.Id != id && x.MeasurementDate == model.MeasurementDate))
+            ModelState.AddModelError(nameof(model.MeasurementDate), "A measurement already exists for this date.");
+        if (!ModelState.IsValid) return View("Create", model);
+        item.MeasurementDate = model.MeasurementDate!.Value;
+        item.WeightKg = decimal.Round(model.WeightKg!.Value, 2, MidpointRounding.AwayFromZero);
+        item.HeightCm = decimal.Round(model.HeightCm!.Value, 2, MidpointRounding.AwayFromZero);
+        var metres = item.HeightCm / 100m;
+        item.BMI = decimal.Round(item.WeightKg / (metres * metres), 2, MidpointRounding.AwayFromZero);
+        item.BodyFatPercentage = model.BodyFatPercentage; item.HeartRate = model.HeartRate;
+        item.CaloriesBurned = model.CaloriesBurned!.Value; item.Notes = model.Notes?.Trim();
+        try { await database.SaveChangesAsync(); }
+        catch (DbUpdateException exception) when (exception.InnerException is SqlException { Number: 2601 or 2627 })
+        { ModelState.AddModelError(nameof(model.MeasurementDate), "A measurement already exists for this date."); return View("Create", model); }
+        TempData["Success"] = "Health measurement updated.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpGet, ActionName("Delete")]
+    public async Task<IActionResult> ConfirmDelete(int id)
+    {
+        var item = await OwnMeasurements.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+        return item is null ? NotFound() : View("Confirm", new ConfirmationViewModel("Delete measurement",
+            $"Permanently delete your measurement from {item.MeasurementDate:yyyy-MM-dd}? Progress summaries will be recalculated from the remaining records.", "Delete", id, "Details", id));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var item = await OwnMeasurements.SingleOrDefaultAsync(x => x.Id == id);
+        if (item is null) return NotFound();
+        database.HealthMeasurements.Remove(item);
+        await database.SaveChangesAsync();
+        TempData["Success"] = "Health measurement deleted.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        ViewData["CanManageMeasurements"] = true;
+        return View(await OwnMeasurements.AsNoTracking().OrderByDescending(x => x.MeasurementDate).ToListAsync());
+    }
 
     [HttpGet]
     public IActionResult Create() => View(new AddMeasurementViewModel { MeasurementDate = DateOnly.FromDateTime(clock.Now) });

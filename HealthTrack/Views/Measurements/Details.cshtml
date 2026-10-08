@@ -1,0 +1,15 @@
+﻿@model HealthTrack.Models.HealthMeasurement
+@{ ViewData["Title"] = "Measurement Details"; }
+<section class="dashboard-heading"><h1>Measurement Details</h1><p class="mb-0">@Model.MeasurementDate.ToString("yyyy-MM-dd")</p></section>
+<div class="card dashboard-card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-3">Weight</dt><dd class="col-sm-9">@Model.WeightKg.ToString("0.##") kg</dd>
+        <dt class="col-sm-3">Height</dt><dd class="col-sm-9">@Model.HeightCm.ToString("0.##") cm</dd>
+        <dt class="col-sm-3">BMI</dt><dd class="col-sm-9">@Model.BMI.ToString("0.00")</dd>
+        <dt class="col-sm-3">Body fat</dt><dd class="col-sm-9">@(Model.BodyFatPercentage?.ToString("0.##") ?? "Not recorded")</dd>
+        <dt class="col-sm-3">Heart rate</dt><dd class="col-sm-9">@(Model.HeartRate?.ToString() ?? "Not recorded")</dd>
+        <dt class="col-sm-3">Calories burned</dt><dd class="col-sm-9">@Model.CaloriesBurned kcal</dd>
+        <dt class="col-sm-3">Notes</dt><dd class="col-sm-9 measurement-notes">@(Model.Notes ?? "No notes recorded.")</dd>
+    </dl>
+    <div class="quick-actions"><a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-success">Edit</a><a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a><a asp-action="Index" class="btn btn-outline-secondary">Back to history</a></div>
+</div></div>

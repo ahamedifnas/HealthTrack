@@ -9,4 +9,4 @@ public class AssignClientViewModel
     public string TrainerId { get; set; } = string.Empty;
 }
 
-public record AssignmentListItem(string ClientName, string? ClientEmail, string TrainerName, string? TrainerEmail, DateTime AssignedAt);
+public record AssignmentListItem(string ClientName, string? ClientEmail, string TrainerName, string? TrainerEmail, DateTime AssignedAt, string ClientId = "");

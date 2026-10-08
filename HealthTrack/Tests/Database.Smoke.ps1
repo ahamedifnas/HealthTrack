@@ -12,9 +12,9 @@ try {
     $expectedMigrations=@(Get-ChildItem "$PSScriptRoot/../Migrations" -Filter '*.cs' | Where-Object { $_.Name -match '^\d+_[^.]+\.cs$' } | ForEach-Object { $_.BaseName })
     $applied=@(Values 'SELECT MigrationId FROM __EFMigrationsHistory ORDER BY MigrationId')
     Assert (-not (Compare-Object $expectedMigrations $applied)) "All $($expectedMigrations.Count) migrations applied with no unknown migrations"
-    $expectedTables=@('__EFMigrationsHistory','AspNetRoleClaims','AspNetRoles','AspNetUserClaims','AspNetUserLogins','AspNetUserRoles','AspNetUsers','AspNetUserTokens','Appointments','DietMeals','DietPlans','HealthMeasurements','MealLogs','Notifications','TrainerClients','WorkoutExercises','WorkoutLogs','WorkoutPlans') | ForEach-Object { "dbo.$_" }
+    $expectedTables=@('__EFMigrationsHistory','AspNetRoleClaims','AspNetRoles','AspNetUserClaims','AspNetUserLogins','AspNetUserRoles','AspNetUsers','AspNetUserTokens','Appointments','DietMeals','DietPlans','HealthMeasurements','HealthcareProfessionals','ReminderDeliveries','MealLogs','Notifications','TrainerClients','WorkoutExercises','WorkoutLogs','WorkoutPlans') | ForEach-Object { "dbo.$_" }
     $tables=@(Values "SELECT SCHEMA_NAME(schema_id)+'.'+name FROM sys.tables WHERE is_ms_shipped=0")
-    Assert (-not (Compare-Object $expectedTables $tables)) 'Exactly the expected 18 tables exist; no duplicate feature tables'
+    Assert (-not (Compare-Object $expectedTables $tables)) 'Exactly the expected 20 tables exist; no duplicate feature tables'
     $foreignKeys=@(Values @'
 SELECT OBJECT_NAME(f.parent_object_id)+'.'+COL_NAME(c.parent_object_id,c.parent_column_id)+'->'+OBJECT_NAME(f.referenced_object_id)
 FROM sys.foreign_keys f JOIN sys.foreign_key_columns c ON c.constraint_object_id=f.object_id
@@ -24,5 +24,5 @@ FROM sys.foreign_keys f JOIN sys.foreign_key_columns c ON c.constraint_object_id
     }
     Assert ((Values 'SELECT COUNT(*) FROM sys.foreign_keys WHERE is_disabled=1 OR is_not_trusted=1') -eq 0) 'All foreign keys enabled and trusted'
     Assert ((Values "SELECT COUNT(*) FROM sys.indexes WHERE object_id=OBJECT_ID('TrainerClients') AND name='IX_TrainerClients_ClientId' AND is_unique=1 AND is_disabled=0") -eq 1) 'Unique client assignment index enforced'
-    Assert ((Values "SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id=OBJECT_ID('WorkoutLogs') AND referenced_object_id=OBJECT_ID('WorkoutExercises') AND delete_referential_action_desc='SET_NULL'") -eq 1) 'Exercise deletion preserves workout logs'
+    Assert ((Values "SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id=OBJECT_ID('WorkoutLogs') AND referenced_object_id=OBJECT_ID('WorkoutExercises') AND delete_referential_action_desc='NO_ACTION'") -eq 1) 'Database prevents deletion of exercises referenced by history'
 } finally { $database.Dispose() }

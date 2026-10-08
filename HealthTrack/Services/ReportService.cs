@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HealthTrack.Services;
 
-public class ReportService(ApplicationDbContext database, PlanAccess access, AppointmentClock clock)
+public class ReportService(ApplicationDbContext database, PlanAccess access, AppointmentClock clock, AnalyticsService analytics)
 {
     private static string Number(decimal? value) => value?.ToString("0.##", CultureInfo.InvariantCulture) ?? "Not recorded";
     private static string Date(DateOnly value) => value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -16,23 +16,26 @@ public class ReportService(ApplicationDbContext database, PlanAccess access, App
         .OrderBy(x => x.FullName).ThenBy(x => x.Id)
         .Select(x => new ReportClient(x.Id, x.FullName, x.Email)).ToListAsync();
 
-    public async Task<ReportViewModel?> ClientAsync(string trainerId, string clientId, ClientReportKind kind)
+    public async Task<ReportViewModel?> ClientAsync(string trainerId, string clientId, ClientReportKind kind, ReportFilter? filter = null)
     {
+        filter ??= new ReportFilter();
         // Every report rechecks the live assignment; a dropdown is not an authorization boundary.
         var client = await access.Clients(trainerId).AsNoTracking().SingleOrDefaultAsync(x => x.Id == clientId);
         if (client is null) return null;
         var report = new ReportViewModel
         {
             Title = kind == ClientReportKind.Progress ? "Client Progress Report" : $"{kind} Report",
-            ClientName = client.FullName,
-            Scope = "All recorded dates. Plans, workout/meal logs and appointments are limited to you and this assigned client. Health measurements cover this client's recorded history."
+            ClientName = client.FullName, Filter = filter,
+            Scope = "Selected recorded dates (all dates when filters are empty). Plans, workout/meal logs and appointments are limited to you and this assigned client. Health measurements cover this client's recorded history."
         };
-        var workouts = access.Workouts(trainerId).AsNoTracking().Where(x => x.ClientId == clientId);
-        var diets = access.Diets(trainerId).AsNoTracking().Where(x => x.ClientId == clientId);
-        var logs = database.WorkoutLogs.AsNoTracking().Where(x => x.ClientId == clientId && workouts.Any(p => p.Id == x.WorkoutPlanId));
+        var ownedWorkouts = access.Workouts(trainerId).AsNoTracking().Where(x => x.ClientId == clientId);
+        var ownedDiets = access.Diets(trainerId).AsNoTracking().Where(x => x.ClientId == clientId);
+        var workouts = ownedWorkouts.Where(x => (!filter.FromDate.HasValue || x.EndDate >= filter.FromDate) && (!filter.ToDate.HasValue || x.StartDate <= filter.ToDate));
+        var diets = ownedDiets.Where(x => (!filter.FromDate.HasValue || x.EndDate >= filter.FromDate) && (!filter.ToDate.HasValue || x.StartDate <= filter.ToDate));
+        var logs = database.WorkoutLogs.AsNoTracking().Where(x => x.ClientId == clientId && ownedWorkouts.Any(p => p.Id == x.WorkoutPlanId) && (!filter.FromDate.HasValue || x.WorkoutDate >= filter.FromDate) && (!filter.ToDate.HasValue || x.WorkoutDate <= filter.ToDate));
         if (kind == ClientReportKind.Progress)
         {
-            var measurements = await database.HealthMeasurements.AsNoTracking().Where(x => x.ClientId == clientId)
+            var measurements = await database.HealthMeasurements.AsNoTracking().Where(x => x.ClientId == clientId && (!filter.FromDate.HasValue || x.MeasurementDate >= filter.FromDate) && (!filter.ToDate.HasValue || x.MeasurementDate <= filter.ToDate))
                 .OrderBy(x => x.MeasurementDate).ThenBy(x => x.Id).ToListAsync();
             var latest = measurements.LastOrDefault();
             var first = measurements.FirstOrDefault();
@@ -61,14 +64,14 @@ public class ReportService(ApplicationDbContext database, PlanAccess access, App
             report.Tables.Add(new("Workout plans", ["Plan", "Status", "Start", "End", "Description"],
                 plans.Select(x => new[] { x.PlanName, x.Status.ToString(), Date(x.StartDate), Date(x.EndDate), x.Description ?? "—" }).ToList()));
             report.Tables.Add(new("Exercises", ["Plan", "Exercise", "Sets", "Repetitions", "Minutes", "Target kcal", "Instructions"],
-                plans.SelectMany(p => p.Exercises.OrderBy(x => x.Id).Select(x => new[] { p.PlanName, x.ExerciseName, x.Sets.ToString(), x.Repetitions.ToString(), x.DurationMinutes.ToString(), x.CaloriesTarget.ToString(), x.Instructions ?? "—" })).ToList()));
+                plans.SelectMany(p => p.Exercises.Where(x => !x.IsArchived).OrderBy(x => x.Id).Select(x => new[] { p.PlanName, x.ExerciseName, x.Sets.ToString(), x.Repetitions.ToString(), x.DurationMinutes.ToString(), x.CaloriesTarget.ToString(), x.Instructions ?? "—" })).ToList()));
             report.Tables.Add(new("Workout logs", ["Plan", "Exercise", "Workout date", "Completed", "Completion date", "Minutes", "Burned kcal", "Notes"],
                 entries.Select(x => new[] { x.WorkoutPlan.PlanName, x.WorkoutExercise?.ExerciseName ?? "Unspecified / deleted", Date(x.WorkoutDate), x.Completed ? "Yes" : "No", x.Completed ? Date(x.WorkoutDate) : "—", x.DurationMinutes.ToString(), x.CaloriesBurned.ToString(), x.Notes ?? "—" }).ToList()));
         }
         else if (kind == ClientReportKind.Diet)
         {
             var plans = await diets.Include(x => x.Meals).OrderBy(x => x.StartDate).ThenBy(x => x.Id).ToListAsync();
-            var entries = await database.MealLogs.AsNoTracking().Where(x => x.ClientId == clientId && diets.Any(p => p.Id == x.DietPlanId))
+            var entries = await database.MealLogs.AsNoTracking().Where(x => x.ClientId == clientId && ownedDiets.Any(p => p.Id == x.DietPlanId) && (!filter.FromDate.HasValue || x.MealDate >= filter.FromDate) && (!filter.ToDate.HasValue || x.MealDate <= filter.ToDate))
                 .Include(x => x.DietPlan).OrderByDescending(x => x.MealDate).ThenByDescending(x => x.Id).ToListAsync();
             report.Metrics.AddRange([new("Diet plans", plans.Count.ToString()), new("Meal logs", entries.Count.ToString()), new("Logged calories (kcal)", entries.Sum(x => (long)x.Calories).ToString())]);
             report.Tables.Add(new("Diet plans", ["Plan", "Status", "Start", "End", "Daily kcal", "Description"],
@@ -80,7 +83,7 @@ public class ReportService(ApplicationDbContext database, PlanAccess access, App
         }
         else
         {
-            var appointments = await database.Appointments.AsNoTracking().Where(x => x.ClientId == clientId && x.TrainerId == trainerId)
+            var appointments = await database.Appointments.AsNoTracking().Where(x => x.ClientId == clientId && x.TrainerId == trainerId && (!filter.FromDate.HasValue || x.AppointmentDate >= filter.FromDate) && (!filter.ToDate.HasValue || x.AppointmentDate <= filter.ToDate) && (!filter.Status.HasValue || x.Status == filter.Status))
                 .OrderByDescending(x => x.AppointmentDate).ThenByDescending(x => x.AppointmentTime).ThenByDescending(x => x.Id).ToListAsync();
             foreach (var status in Enum.GetValues<AppointmentStatus>())
             {
@@ -112,6 +115,11 @@ public class ReportService(ApplicationDbContext database, PlanAccess access, App
             new ReportMetric($"{status} Appointments", (counts.SingleOrDefault(x => x.Status == status)?.Count ?? 0).ToString())));
         report.Tables.Add(new("Appointment status counts", ["Status", "Count"], Enum.GetValues<AppointmentStatus>()
             .Select(status => new[] { status.ToString(), (counts.SingleOrDefault(x => x.Status == status)?.Count ?? 0).ToString() }).ToList()));
+        var engagement = await analytics.BuildAsync(null);
+        report.Metrics.AddRange(engagement.Metrics);
+        report.PrintMetrics.AddRange(engagement.Metrics);
+        report.Tables.Add(new("Analytics definitions", ["Scope"], [new[] { engagement.Scope }]));
+        report.Tables.AddRange(engagement.Tables);
         return report;
     }
 }

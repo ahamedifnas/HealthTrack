@@ -1,5 +1,6 @@
 @model HealthTrack.Models.Measurements.ProgressViewModel
 @{ ViewData["Title"] = "Progress"; }
+@if (Model.IsOwnProgress) { <p><a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Progress" asp-route-download="true" class="btn btn-success" download>Download PDF</a> <a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Progress" class="btn btn-outline-success">Filter report</a></p> }
 <section class="dashboard-heading"><h1>Progress</h1><p class="mb-0">@Model.FullName</p></section>
 @if (Model.IsOwnProgress)
 {

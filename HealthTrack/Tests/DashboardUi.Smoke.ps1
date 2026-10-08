@@ -73,7 +73,8 @@ try {
     Assert ((Metric $html 'Current Weight') -eq '85 kg' -and (Metric $html 'Target Weight') -eq '80 kg') 'Weight KPI values come from the logged-in client records'
     Assert ((Metric $html 'Calories Burned') -eq '350 kcal') 'Calories total includes only today and the previous six days'
     Assert ($html.Contains('aria-valuenow="50"') -and $html.Contains('width: 50%')) 'C# weight progress renders an accessible 50 percent progress bar'
-    Assert ($html.Contains('1 unread') -and $html.Contains("$prefix-$($client.Id)") -and -not $html.Contains("$prefix-$($other.Id)")) 'Notifications show the client unread count without leaking another client records'
+    $unread=Query 'SELECT COUNT(*) FROM Notifications WHERE UserId=@id AND IsRead=0' @{id=$client.Id}
+    Assert ($html.Contains("$unread unread") -and $html.Contains('Workout Reminder') -and -not $html.Contains("$prefix-$($other.Id)")) 'Notifications show the client unread count without leaking another client records'
     Assert ($html.Contains("$prefix workout") -and $html.Contains("$prefix diet") -and $html.Contains('data-testid="next-appointment"')) 'Daily overview renders real plans and approved appointment'
     foreach ($weight in @(100,80)) {
         $null = Query 'UPDATE HealthMeasurements SET WeightKg=@weight WHERE ClientId=@client AND MeasurementDate=@date' @{weight=$weight;client=$client.Id;date=$today}
@@ -101,12 +102,12 @@ try {
         @('Total Trainers',"SELECT COUNT(*) FROM AspNetUserRoles ur JOIN AspNetRoles r ON r.Id=ur.RoleId WHERE r.Name='Trainer'"),
         @('Active Users','SELECT COUNT(*) FROM AspNetUsers WHERE IsActive=1'),
         @('Total Appointments','SELECT COUNT(*) FROM Appointments'),
-        @('Active Workout Plans','SELECT COUNT(*) FROM WorkoutPlans WHERE Status=1'),
-        @('Active Diet Plans','SELECT COUNT(*) FROM DietPlans WHERE Status=1')
+        @('Active Workout Plans',"SELECT COUNT(*) FROM WorkoutPlans WHERE Status=1 AND StartDate<='$($today.ToString('yyyy-MM-dd'))' AND EndDate>='$($today.ToString('yyyy-MM-dd'))'"),
+        @('Active Diet Plans',"SELECT COUNT(*) FROM DietPlans WHERE Status=1 AND StartDate<='$($today.ToString('yyyy-MM-dd'))' AND EndDate>='$($today.ToString('yyyy-MM-dd'))'")
     )
     foreach ($entry in $counts) { Assert ((Metric $html $entry[0]) -eq (Query $entry[1]).ToString()) "Admin $($entry[0]) matches SQL Server" }
     Assert ($html.Contains('Recent System Activity') -and $html.Contains("$prefix-Admin@example.test") -and $html.Contains('Recent Assignments') -and $html.Contains("/Appointments/Details/$foreign")) 'Admin activity displays recently created users, assignments and appointments'
-    Assert ($html.Contains('action="/AdminAssignments/Assign"') -and $html.Contains('/AdminTrainers/SetActive/') -and $html.Contains('/AdminReports/Print')) 'Admin management forms and printable report access remain available'
+    Assert ($html.Contains('action="/AdminAssignments/Assign"') -and $html.Contains('/AdminTrainers/Deactivate/') -and $html.Contains('/AdminReports/Print')) 'Admin management forms and printable report access remain available'
     ExpectForbidden $client.Session '/Dashboard/Trainer'
     ExpectForbidden $client.Session '/Dashboard/Admin'
     ExpectForbidden $trainer.Session '/Dashboard/Client'

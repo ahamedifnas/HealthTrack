@@ -8,7 +8,7 @@ public static class IdentitySeeder
     public static async Task SeedAsync(IServiceProvider services, IHostEnvironment environment)
     {
         var roles = services.GetRequiredService<RoleManager<IdentityRole>>();
-        foreach (var role in new[] { AppRoles.Admin, AppRoles.Trainer, AppRoles.Client })
+        foreach (var role in new[] { AppRoles.Admin, AppRoles.Trainer, AppRoles.Client, AppRoles.HealthcareProfessional })
         {
             if (!await roles.RoleExistsAsync(role))
                 EnsureSucceeded(await roles.CreateAsync(new IdentityRole(role)));
@@ -28,7 +28,7 @@ public static class IdentitySeeder
         var users = services.GetRequiredService<UserManager<ApplicationUser>>();
         var admin = await users.FindByEmailAsync(email);
         if (admin is not null && (await users.IsInRoleAsync(admin, AppRoles.Client)
-            || await users.IsInRoleAsync(admin, AppRoles.Trainer)))
+            || await users.IsInRoleAsync(admin, AppRoles.Trainer) || await users.IsInRoleAsync(admin, AppRoles.HealthcareProfessional)))
         {
             throw new InvalidOperationException("The configured Admin email belongs to a Client or Trainer. That account will not be changed.");
         }

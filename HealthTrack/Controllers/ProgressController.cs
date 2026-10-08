@@ -14,7 +14,7 @@ public class ProgressController(ApplicationDbContext database, PlanAccess access
 {
     public async Task<IActionResult> Index(string? clientId = null)
     {
-        if (User.IsInRole(AppRoles.Admin)) return Forbid();
+        if (User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.HealthcareProfessional)) return Forbid();
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         ApplicationUser? client;
         var own = false;
@@ -31,6 +31,7 @@ public class ProgressController(ApplicationDbContext database, PlanAccess access
         }
         else return Forbid();
         if (client is null) return NotFound();
+        ViewData["CanManageMeasurements"] = own;
         var measurements = await database.HealthMeasurements.AsNoTracking().Where(x => x.ClientId == client.Id)
             .OrderBy(x => x.MeasurementDate).ToListAsync();
         var trends = new List<ProgressTrendRow>();

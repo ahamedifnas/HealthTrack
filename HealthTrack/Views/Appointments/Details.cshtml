@@ -4,13 +4,15 @@
 <div class="card dashboard-card"><div class="card-body">
     <dl class="row">
         <dt class="col-sm-3">Client</dt><dd class="col-sm-9">@Model.Appointment.Client.FullName</dd>
-        <dt class="col-sm-3">Trainer</dt><dd class="col-sm-9">@Model.Appointment.Trainer.FullName</dd>
+        <dt class="col-sm-3">Provider</dt><dd class="col-sm-9">@Model.Appointment.ProviderName</dd>
         <dt class="col-sm-3">Status</dt><dd class="col-sm-9"><partial name="_AppointmentStatus" model="Model.Appointment.Status" /></dd>
         <dt class="col-sm-3">Reason</dt><dd class="col-sm-9 text-break">@Model.Appointment.Reason</dd>
         <dt class="col-sm-3">Notes</dt><dd class="col-sm-9 text-break">@(string.IsNullOrWhiteSpace(Model.Appointment.Notes) ? "No notes yet." : Model.Appointment.Notes)</dd>
     </dl>
-    @if (Model.IsAdmin) { <p class="text-muted">Admin access is read-only.</p> }
+    @if (Model.IsAdmin) { <p class="text-muted">@(Model.CanAdminDelete ? "This cancelled future booking can be deleted after confirmation." : "Admin access is read-only for this appointment. History is retained.")</p> }
     <div class="d-flex gap-2 flex-wrap">
+        @if (Model.CanClientEdit) { <a asp-action="EditRequest" asp-route-id="@Model.Appointment.Id" class="btn btn-success">Edit request</a> }
+        @if (Model.CanAdminDelete) { <a asp-action="Delete" asp-route-id="@Model.Appointment.Id" class="btn btn-outline-danger">Delete cancelled booking</a> }
         @if (Model.CanClientCancel)
         {
             <a asp-action="Cancel" asp-route-id="@Model.Appointment.Id" class="btn btn-outline-danger">Cancel appointment</a>

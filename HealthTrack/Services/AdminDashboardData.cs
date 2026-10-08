@@ -8,19 +8,20 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 namespace HealthTrack.Services;
 
-public class AdminDashboardData(ApplicationDbContext database, UserManager<ApplicationUser> users)
+public class AdminDashboardData(ApplicationDbContext database, UserManager<ApplicationUser> users, AppointmentClock clock)
 {
     private IQueryable<ApplicationUser> ActiveRole(string role) => database.Users.AsNoTracking().Where(x => x.IsActive
         && database.UserRoles.Any(ur => ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && r.Name == role))
         && !database.UserRoles.Any(ur => ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Admin)));
 
     public IQueryable<ApplicationUser> ActiveClients() => ActiveRole(AppRoles.Client).Where(x =>
-        !database.UserRoles.Any(ur => ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Trainer)));
+        !database.UserRoles.Any(ur => ur.UserId == x.Id && database.Roles.Any(r => r.Id == ur.RoleId && (r.Name == AppRoles.Trainer || r.Name == AppRoles.HealthcareProfessional))));
     public IQueryable<ApplicationUser> ActiveTrainers() => ActiveRole(AppRoles.Trainer);
 
     public async Task<AdminDashboardViewModel> LoadAsync(string? adminId = null)
     {
         var trainers = await users.GetUsersInRoleAsync(AppRoles.Trainer);
+        var today = DateOnly.FromDateTime(clock.Now);
         return new AdminDashboardViewModel
         {
             FullName = await database.Users.AsNoTracking().Where(x => x.Id == adminId)
@@ -30,12 +31,12 @@ public class AdminDashboardData(ApplicationDbContext database, UserManager<Appli
             TotalTrainers = trainers.Count,
             ActiveUsers = await users.Users.CountAsync(x => x.IsActive),
             TotalAppointments = await database.Appointments.CountAsync(),
-            ActiveWorkoutPlans = await database.WorkoutPlans.CountAsync(x => x.Status == PlanStatus.Active),
-            ActiveDietPlans = await database.DietPlans.CountAsync(x => x.Status == PlanStatus.Active),
+            ActiveWorkoutPlans = await database.WorkoutPlans.CountAsync(x => x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today),
+            ActiveDietPlans = await database.DietPlans.CountAsync(x => x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today),
             RecentUsers = await database.Users.AsNoTracking().OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
                 .Take(5).Select(x => new DashboardUser(x.FullName, x.Email, x.CreatedAt, x.IsActive)).ToListAsync(),
             RecentAppointments = await database.Appointments.AsNoTracking().OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
-                .Take(5).Select(x => new DashboardAppointment(x.Id, x.Client.FullName, x.Trainer.FullName,
+                .Take(5).Select(x => new DashboardAppointment(x.Id, x.Client.FullName, x.Trainer != null ? x.Trainer.FullName : x.HealthcareProfessional!.User.FullName,
                     x.AppointmentDate, x.AppointmentTime, x.Status)).ToListAsync(),
             Trainers = trainers.OrderBy(x => x.FullName).ThenBy(x => x.Email)
                 .Select(x => new TrainerListItem(x.Id, x.FullName, x.Email, x.IsActive, x.CreatedAt)).ToList(),
@@ -44,7 +45,7 @@ public class AdminDashboardData(ApplicationDbContext database, UserManager<Appli
             AssignmentTrainers = await ActiveTrainers().OrderBy(x => x.FullName)
                 .Select(x => new SelectListItem(x.FullName + " (" + x.Email + ")", x.Id)).ToListAsync(),
             Assignments = await database.TrainerClients.AsNoTracking().OrderByDescending(x => x.AssignedAt).ThenBy(x => x.ClientId)
-                .Select(x => new AssignmentListItem(x.Client.FullName, x.Client.Email, x.Trainer.FullName, x.Trainer.Email, x.AssignedAt)).ToListAsync()
+                .Select(x => new AssignmentListItem(x.Client.FullName, x.Client.Email, x.Trainer.FullName, x.Trainer.Email, x.AssignedAt, x.ClientId)).ToListAsync()
         };
     }
 }

@@ -1,0 +1,5 @@
+@model TrainerClient
+@{ ViewData["Title"] = "Assignment Details"; }
+<h1>Assignment Details</h1>
+<dl><dt>Client</dt><dd>@Model.Client.FullName (@Model.Client.Email)</dd><dt>Trainer</dt><dd>@Model.Trainer.FullName (@Model.Trainer.Email)</dd><dt>Assigned (UTC)</dt><dd>@Model.AssignedAt.ToString("yyyy-MM-dd HH:mm")</dd></dl>
+<div class="quick-actions"><a asp-action="Reassign" asp-route-id="@Model.ClientId" class="btn btn-success">Edit / Reassign</a><a asp-action="Unassign" asp-route-id="@Model.ClientId" class="btn btn-outline-danger">Unassign</a><a asp-controller="Dashboard" asp-action="Admin" class="btn btn-outline-secondary">Back to List</a></div>

@@ -6,6 +6,12 @@ public record ReportTable(string Title, string[] Columns, IReadOnlyList<string[]
 
 public class ReportViewModel
 {
+    public string? DownloadUrl { get; set; }
+    public string? DownloadKind { get; set; }
+    public string? FilterClientId { get; set; }
+    public ReportFilter? Filter { get; set; }
+    public bool ShowStatusFilter { get; set; }
+    public List<ReportClient>? FilterClients { get; set; }
     public string Title { get; init; } = string.Empty;
     public string? ClientName { get; init; }
     public bool IsAdminReport { get; init; }

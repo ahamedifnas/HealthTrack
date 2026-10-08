@@ -5,6 +5,8 @@
     <p class="mb-0">@Model.Description</p>
 </section>
 <p class="text-muted">All appointment dates and times use @Model.TimeZoneId.</p>
+@if (Model.CanBook) { <p><a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Appointments" asp-route-download="true" class="btn btn-success" download>Download PDF</a> <a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Appointments" class="btn btn-outline-success">Filter report</a></p> }
+@if (User.IsInRole(AppRoles.HealthcareProfessional)) { <p><a asp-controller="ReportDownloads" asp-action="Healthcare" asp-route-download="true" class="btn btn-success" download>Download PDF</a> <a asp-controller="ReportDownloads" asp-action="Healthcare" class="btn btn-outline-success">Filter report</a></p> }
 @if (Model.CanBook)
 {
     <a asp-action="Book" class="btn btn-primary mb-3">Book Appointment</a>
@@ -17,14 +19,14 @@ else
 {
     <div class="card dashboard-card"><div class="table-responsive">
         <table class="table table-striped align-middle mb-0">
-            <thead><tr><th>Date</th><th>Time</th><th>Client</th><th>Trainer</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Date</th><th>Time</th><th>Client</th><th>Provider</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
             @foreach (var appointment in Model.Appointments)
             {
                 <tr>
                     <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd")</td>
                     <td>@appointment.AppointmentTime.ToString("HH:mm")</td>
-                    <td>@appointment.Client.FullName</td><td>@appointment.Trainer.FullName</td>
+                    <td>@appointment.Client.FullName</td><td>@appointment.ProviderName</td>
                     <td><partial name="_AppointmentStatus" model="appointment.Status" /></td>
                     <td><a asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-sm btn-outline-primary">Details</a></td>
                 </tr>

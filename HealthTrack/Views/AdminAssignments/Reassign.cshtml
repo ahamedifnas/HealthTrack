@@ -1,0 +1,13 @@
+﻿@model HealthTrack.Models.Admin.AssignClientViewModel
+@{ ViewData["Title"] = "Reassign Client"; }
+<section class="dashboard-heading"><h1>Reassign Client</h1><p class="mb-0">@ViewData["ClientName"]</p></section>
+<div class="card dashboard-card"><div class="card-body">
+<p>Choose an active trainer. Existing plans and history will be retained under their original trainer.</p>
+<form asp-action="Reassign" asp-route-id="@Model.ClientId" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <input asp-for="ClientId" type="hidden" />
+    <input type="hidden" name="expectedTrainerId" value="@ViewData["ExpectedTrainerId"]" />
+    <div class="mb-3"><label asp-for="TrainerId" class="form-label"></label><select asp-for="TrainerId" asp-items="@(ViewData["Trainers"] as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)" class="form-select"><option value="">Choose a trainer</option></select><span asp-validation-for="TrainerId" class="text-danger"></span></div>
+    <button type="submit" class="btn btn-success">Confirm reassignment</button><a asp-controller="Dashboard" asp-action="Admin" class="btn btn-outline-secondary">Cancel</a>
+</form>
+</div></div>

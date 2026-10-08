@@ -1,5 +1,6 @@
-@model List<WorkoutLog>
+﻿@model List<WorkoutLog>
 @{ ViewData["Title"] ??= "Workout History"; }
+@if (ViewData["CanLog"] is true) { <p><a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Workout" asp-route-download="true" class="btn btn-success" download>Download PDF</a> <a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Workout" class="btn btn-outline-success">Filter report</a></p> }
 <h1>@ViewData["Title"]</h1>
 @if (ViewData["CanLog"] is true)
 {
@@ -13,12 +14,13 @@ else
 {
     <div class="card dashboard-card"><div class="table-responsive">
     <table class="table table-striped align-middle mb-0">
-        <thead><tr><th>Date</th><th>Plan</th><th>Exercise</th><th>Minutes</th><th>kcal burned</th><th>Completed</th><th>Notes</th></tr></thead>
+        <thead><tr><th>Date</th><th>Plan</th><th>Exercise</th><th>Minutes</th><th>kcal burned</th><th>Completed</th><th>Notes</th>@if (ViewData["CanLog"] is true) { <th scope="col">Actions</th> }</tr></thead>
         <tbody>
         @foreach (var log in Model)
         {
-            <tr><td class="text-break">@log.WorkoutDate.ToString("yyyy-MM-dd")</td><td class="text-break">@log.WorkoutPlan.PlanName</td><td class="text-break">@(log.WorkoutExercise?.ExerciseName ?? "Whole workout / removed exercise")</td><td class="text-break">@log.DurationMinutes</td><td class="text-break">@log.CaloriesBurned</td><td class="text-break">@(log.Completed ? "Yes" : "No")</td><td class="text-break">@log.Notes</td></tr>
+            <tr><td class="text-break">@log.WorkoutDate.ToString("yyyy-MM-dd")</td><td class="text-break">@log.WorkoutPlan.PlanName</td><td class="text-break">@(log.WorkoutExercise?.ExerciseName ?? "Whole workout / removed exercise")</td><td class="text-break">@log.DurationMinutes</td><td class="text-break">@log.CaloriesBurned</td><td class="text-break">@(log.Completed ? "Yes" : "No")</td><td class="text-break">@log.Notes</td>@if (ViewData["CanLog"] is true) { <td><div class="d-flex gap-2 flex-wrap"><a asp-controller="Workouts" asp-action="LogDetails" asp-route-id="@log.Id" class="btn btn-sm btn-outline-success">Details</a><a asp-controller="Workouts" asp-action="EditLog" asp-route-id="@log.Id" class="btn btn-sm btn-outline-success">Edit</a><a asp-controller="Workouts" asp-action="DeleteLog" asp-route-id="@log.Id" class="btn btn-sm btn-outline-danger">Delete</a></div></td> }</tr>
         }
         </tbody>
     </table></div></div>
 }
+

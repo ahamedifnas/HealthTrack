@@ -66,7 +66,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
         var model = new PlanForm
         {
             ClientId = plan.ClientId, PlanName = plan.PlanName, Description = plan.Description,
-            StartDate = plan.StartDate, EndDate = plan.EndDate
+            StartDate = plan.StartDate, EndDate = plan.EndDate, Status = plan.Status
         };
         await PopulateClients(model, plan.ClientId);
         ViewData["Title"] = "Edit workout plan";
@@ -91,6 +91,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
         plan.Description = model.Description;
         plan.StartDate = model.StartDate;
         plan.EndDate = model.EndDate;
+        if (model.Status is { } status) plan.Status = status;
         
         await database.SaveChangesAsync();
         TempData["Success"] = "Workout plan updated.";
@@ -149,7 +150,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
     public async Task<IActionResult> EditExercise(int id)
     {
         var item = await database.WorkoutExercises
-            .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsArchived && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
         if (item is null) return NotFound();
         ViewData["PlanId"] = item.WorkoutPlanId;
         ViewData["Title"] = "Edit exercise";
@@ -168,7 +169,7 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
     public async Task<IActionResult> EditExercise(int id, ExerciseForm model)
     {
         var item = await database.WorkoutExercises
-            .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsArchived && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
         if (item is null) return NotFound();
         if (!ModelState.IsValid)
         {
@@ -192,21 +193,21 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
     public async Task<IActionResult> ConfirmDeleteExercise(int id)
     {
         var item = await database.WorkoutExercises.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsArchived && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
         return item is null ? NotFound() : View("Confirm", new HealthTrack.Models.ConfirmationViewModel(
-            "Delete exercise", $"Delete {item.ExerciseName}? Existing workout logs will be kept.", "DeleteExercise", id, "Details", item.WorkoutPlanId));
+            "Archive exercise", $"Archive {item.ExerciseName}? Existing workout logs and their exercise details will be kept.", "DeleteExercise", id, "Details", item.WorkoutPlanId));
     }
 
     [HttpPost]
     public async Task<IActionResult> DeleteExercise(int id)
     {
         var item = await database.WorkoutExercises
-            .FirstOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsArchived && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
         if (item is null) return NotFound();
         await NotifyPlanUpdate(item.WorkoutPlanId);
-        database.WorkoutExercises.Remove(item);
+        item.IsArchived = true;
         await database.SaveChangesAsync();
-        TempData["Success"] = "Exercise deleted. Existing logs have been preserved.";
+        TempData["Success"] = "Exercise archived. Existing logs and exercise details have been preserved.";
         return RedirectToAction(nameof(Details), new { id = item.WorkoutPlanId });
     }
 
@@ -219,6 +220,48 @@ public class TrainerWorkoutsController(ApplicationDbContext database, PlanAccess
             .Where(x => x.ClientId == clientId && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId))
             .OrderByDescending(x => x.WorkoutDate).ThenByDescending(x => x.Id).ToListAsync();
         return View("~/Views/Workouts/History.cshtml", logs);
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> ExerciseDetails(int id)
+    {
+        var item = await database.WorkoutExercises.AsNoTracking().Include(x => x.WorkoutPlan)
+            .SingleOrDefaultAsync(x => x.Id == id && OwnedPlans.Any(p => p.Id == x.WorkoutPlanId));
+        return item is null ? NotFound() : View("ExerciseDetails", item);
+    }
+
+    [HttpGet, ActionName("Delete")]
+    public async Task<IActionResult> ConfirmDelete(int id)
+    {
+        var plan = await OwnedPlans.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
+        if (plan is null) return NotFound();
+        var history = await database.WorkoutLogs.AnyAsync(x => x.WorkoutPlanId == id);
+        return View("Confirm", new HealthTrack.Models.ConfirmationViewModel(
+            history ? "Deactivate workout plan" : "Delete workout plan",
+            history ? $"Deactivate {plan.PlanName}? Its logs and history will be preserved."
+                : $"Delete {plan.PlanName} and its exercises? If logs have been added, the plan will be deactivated instead.",
+            "Delete", id, "Details", id));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await using var transaction = await database.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        var plan = await OwnedPlans.Include(x => x.Exercises).SingleOrDefaultAsync(x => x.Id == id);
+        if (plan is null) return NotFound();
+        var history = await database.WorkoutLogs.AnyAsync(x => x.WorkoutPlanId == id);
+        if (history) plan.Status = PlanStatus.Inactive;
+        else
+        {
+            database.WorkoutExercises.RemoveRange(plan.Exercises);
+            database.WorkoutPlans.Remove(plan);
+        }
+        notifications.RemovedPlan(plan.ClientId, plan.PlanName, NotificationType.Workout, history);
+        await database.SaveChangesAsync();
+        await transaction.CommitAsync();
+        TempData["Success"] = history ? "Plan deactivated. All logs and history have been preserved." : "Plan deleted.";
+        return RedirectToAction(nameof(Index));
     }
 
     private async Task NotifyPlanUpdate(int planId)

@@ -1,4 +1,4 @@
-﻿@model HealthTrack.Models.Dashboard.ClientDashboardViewModel
+@model HealthTrack.Models.Dashboard.ClientDashboardViewModel
 @{ ViewData["Title"] = "Client Dashboard"; }
 <partial name="_DashboardHeader" model="Model.Header" />
 <partial name="_DashboardMetrics" model="Model.Metrics" />
@@ -67,7 +67,7 @@
             {
                 <span class="badge status-positive align-self-start mb-3">Approved</span>
                 <p class="plan-name" data-testid="next-appointment">@next.AppointmentDate.ToString("yyyy-MM-dd") at @next.AppointmentTime.ToString("HH:mm") (@ViewData["TimeZoneId"])</p>
-                <p class="text-muted">Trainer: @next.Trainer.FullName</p>
+                <p class="text-muted">Provider: @next.ProviderName</p>
                 <div class="mt-auto pt-3"><a asp-controller="Appointments" asp-action="Details" asp-route-id="@next.Id" class="btn btn-outline-success w-100">View appointment</a></div>
             }
             else

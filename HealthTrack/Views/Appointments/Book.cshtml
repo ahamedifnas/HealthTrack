@@ -1,15 +1,16 @@
 @model BookAppointmentForm
-@{ ViewData["Title"] = "Book Appointment"; }
-<section class="dashboard-heading"><h1>Book Appointment</h1><p class="mb-0">Choose a trainer and request a future appointment.</p></section>
-@if (Model.Trainers.Count == 0)
+@{ var editing = ViewData["IsEditing"] is true; ViewData["Title"] = editing ? "Edit Appointment Request" : "Book Appointment"; }
+<section class="dashboard-heading"><h1>@ViewData["Title"]</h1><p class="mb-0">Choose exactly one trainer OR healthcare professional and request a future appointment.</p></section>
+@if (Model.Trainers.Count == 0 && Model.HealthcareProfessionals.Count == 0)
 {
-    <div class="alert alert-info">No active trainers are available for booking yet.</div>
+    <div class="alert alert-info">No active providers are available for booking yet.</div>
     <a asp-action="Index">Back to appointments</a>
 }
 else
 {
     <div class="card dashboard-card"><div class="card-body">
-        <form asp-action="Book" method="post">
+        <form asp-action="@(editing ? "EditRequest" : "Book")" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
+@if (editing) { <input asp-for="RowVersion" type="hidden" /> }
             @if (!ViewData.ModelState.IsValid)
             {
                 <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
@@ -19,13 +20,18 @@ else
                 <select asp-for="TrainerId" asp-items="Model.Trainers" class="form-select"><option value="">Choose a trainer</option></select>
                 <span asp-validation-for="TrainerId" class="text-danger"></span>
             </div>
+            <div class="mb-3">
+                <label asp-for="HealthcareProfessionalId" class="form-label"></label>
+                <select asp-for="HealthcareProfessionalId" asp-items="Model.HealthcareProfessionals" class="form-select"><option value="">Choose a healthcare professional (leave trainer empty)</option></select>
+                <span asp-validation-for="HealthcareProfessionalId" class="text-danger"></span>
+            </div>
             <partial name="_AppointmentScheduleFields" model="Model" />
             <div class="mb-3">
                 <label asp-for="Reason" class="form-label"></label>
                 <textarea asp-for="Reason" class="form-control" rows="4" maxlength="1000"></textarea>
                 <span asp-validation-for="Reason" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Request appointment</button>
+            <button type="submit" class="btn btn-primary">@(editing ? "Save request" : "Request appointment")</button>
             <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
         </form>
     </div></div>

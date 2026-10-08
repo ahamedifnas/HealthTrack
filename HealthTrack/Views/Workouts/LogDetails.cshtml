@@ -1,0 +1,14 @@
+@model WorkoutLog
+@{ ViewData["Title"] = "Workout Log Details"; }
+<section class="dashboard-heading"><h1>Workout Log Details</h1><p class="mb-0">@Model.WorkoutPlan.PlanName</p></section>
+<div class="card dashboard-card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-3">Date</dt><dd class="col-sm-9 text-break">@Model.WorkoutDate.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Exercise</dt><dd class="col-sm-9 text-break">@(Model.WorkoutExercise?.ExerciseName ?? "Whole workout / removed exercise")</dd>
+        <dt class="col-sm-3">Duration</dt><dd class="col-sm-9 text-break">@Model.DurationMinutes minutes</dd>
+        <dt class="col-sm-3">Calories burned</dt><dd class="col-sm-9 text-break">@Model.CaloriesBurned kcal</dd>
+        <dt class="col-sm-3">Completed</dt><dd class="col-sm-9 text-break">@(Model.Completed ? "Yes" : "No")</dd>
+        <dt class="col-sm-3">Notes</dt><dd class="col-sm-9 text-break">@(Model.Notes ?? "No notes recorded.")</dd>
+    </dl>
+    <div class="quick-actions"><a asp-action="EditLog" asp-route-id="@Model.Id" class="btn btn-success">Edit</a><a asp-action="DeleteLog" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a><a asp-action="History"  class="btn btn-outline-secondary">Back</a></div>
+</div></div>

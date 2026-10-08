@@ -1,0 +1,16 @@
+@model DietMeal
+@{ ViewData["Title"] = "Meal Details"; }
+<section class="dashboard-heading"><h1>Meal Details</h1><p class="mb-0">@Model.FoodName</p></section>
+<div class="card dashboard-card"><div class="card-body">
+    <dl class="row">
+        <dt class="col-sm-3">Diet plan</dt><dd class="col-sm-9 text-break">@Model.DietPlan.PlanName</dd>
+        <dt class="col-sm-3">Meal type</dt><dd class="col-sm-9 text-break">@Model.MealType</dd>
+        <dt class="col-sm-3">Quantity</dt><dd class="col-sm-9 text-break">@Model.Quantity</dd>
+        <dt class="col-sm-3">Calories</dt><dd class="col-sm-9 text-break">@Model.Calories kcal</dd>
+        <dt class="col-sm-3">Protein</dt><dd class="col-sm-9 text-break">@Model.Protein g</dd>
+        <dt class="col-sm-3">Carbohydrates</dt><dd class="col-sm-9 text-break">@Model.Carbohydrates g</dd>
+        <dt class="col-sm-3">Fat</dt><dd class="col-sm-9 text-break">@Model.Fat g</dd>
+        <dt class="col-sm-3">Instructions</dt><dd class="col-sm-9 text-break">@(Model.Instructions ?? "No instructions recorded.")</dd>
+    </dl>
+    <div class="quick-actions"><a asp-action="EditMeal" asp-route-id="@Model.Id" class="btn btn-success">Edit</a><a asp-action="DeleteMeal" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a><a asp-action="Details" asp-route-id="@Model.DietPlanId" class="btn btn-outline-secondary">Back</a></div>
+</div></div>

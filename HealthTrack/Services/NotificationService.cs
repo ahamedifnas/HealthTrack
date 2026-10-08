@@ -20,4 +20,8 @@ public class NotificationService(ApplicationDbContext database, AppointmentClock
         {
             UserId = userId, Type = type, Title = title, Message = message
         });
+
+    public void RemovedPlan(string clientId, string planName, NotificationType type, bool deactivated)
+        => Add(clientId, type, $"{type} plan {(deactivated ? "deactivated" : "removed")}",
+            $"Your {type.ToString().ToLowerInvariant()} plan, {planName}, was {(deactivated ? "deactivated; your recorded history is preserved" : "removed")}.");
 }

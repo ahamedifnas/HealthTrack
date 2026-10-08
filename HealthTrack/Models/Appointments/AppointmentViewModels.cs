@@ -10,6 +10,8 @@ public class AppointmentDetailsViewModel
     public bool CanApprove { get; init; }
     public bool CanComplete { get; init; }
     public bool AwaitingScheduledTime { get; init; }
+    public bool CanClientEdit { get; init; }
+    public bool CanAdminDelete { get; init; }
 }
 
 public record AppointmentListViewModel(List<Appointment> Appointments, string Description, bool CanBook, string TimeZoneId);

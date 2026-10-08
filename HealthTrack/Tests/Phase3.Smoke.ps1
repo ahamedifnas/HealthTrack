@@ -169,7 +169,13 @@ try {
     $null=Submit $t '/TrainerDiets' "/TrainerDiets/SetStatus/$diet" @{status=1}
     Assert ((Query 'SELECT Status FROM DietPlans WHERE Id=@id' @{id=$diet}) -eq 1) 'Diet reactivated'
     $null=Submit $t '/TrainerWorkouts' "/TrainerWorkouts/DeleteExercise/$exercise" @{}
-    Assert ((Query 'SELECT COUNT(*) FROM WorkoutLogs WHERE ClientId=@id AND WorkoutExerciseId IS NULL' @{id=$client.Id}) -eq 1) 'Exercise deletion preserves workout log'
+    Assert ((Query 'SELECT COUNT(*) FROM WorkoutLogs l JOIN WorkoutExercises e ON e.Id=l.WorkoutExerciseId WHERE l.ClientId=@id AND e.IsArchived=1' @{id=$client.Id}) -eq 1) 'Exercise archive preserves workout log and exercise reference'
+    Assert (-not (Get-Page $c "/Workouts/Log?planId=$workout").Content.Contains('value="'+$exercise+'" selected')) 'Archived exercise is not selected for a new workout'
+    $beforeLogs=Query 'SELECT COUNT(*) FROM WorkoutLogs WHERE ClientId=@id' @{id=$client.Id}
+    $null=Submit $c '/Workouts' '/Workouts/Log' $log
+    Assert ((Query 'SELECT COUNT(*) FROM WorkoutLogs WHERE ClientId=@id' @{id=$client.Id}) -eq $beforeLogs) 'Forged archived exercise cannot receive a new log'
+    ExpectStatus 404 { Get-Page $t "/TrainerWorkouts/EditExercise/$exercise" } 'Archived exercise cannot be edited'
+    Assert ((Get-Page $t "/TrainerWorkouts/ExerciseDetails/$exercise").Content.Contains('Archived. Retained')) 'Archived exercise details remain readable'
     $null=Submit $t '/TrainerDiets' "/TrainerDiets/DeleteMeal/$meal" @{}
     Assert ((Query 'SELECT COUNT(*) FROM MealLogs WHERE ClientId=@id' @{id=$client.Id}) -eq 1) 'Meal item deletion preserves meal history'
     $null=Query 'DELETE FROM TrainerClients WHERE ClientId=@id' @{id=$client.Id}

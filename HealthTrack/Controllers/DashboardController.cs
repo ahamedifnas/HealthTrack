@@ -19,6 +19,7 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
     {
         if (User.IsInRole(AppRoles.Admin)) return RedirectToAction(nameof(Admin));
         if (User.IsInRole(AppRoles.Trainer)) return RedirectToAction(nameof(Trainer));
+        if (User.IsInRole(AppRoles.HealthcareProfessional)) return RedirectToAction("Index", "Appointments");
         if (User.IsInRole(AppRoles.Client)) return RedirectToAction(nameof(Client));
         return Forbid();
     }
@@ -52,7 +53,7 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
             // Preview the newest active plan whose dates include today.
             WorkoutPlan = await database.WorkoutPlans.AsNoTracking()
                 .Where(x => x.ClientId == user.Id && x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today)
-                .Include(x => x.Exercises.OrderBy(e => e.Id).Take(3))
+                .Include(x => x.Exercises.Where(e => !e.IsArchived).OrderBy(e => e.Id).Take(3))
                 .OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).FirstOrDefaultAsync(),
             DietPlan = await database.DietPlans.AsNoTracking()
                 .Where(x => x.ClientId == user.Id && x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today)
@@ -61,7 +62,7 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
             CurrentWeight = latest?.WeightKg, BMI = latest?.BMI, TargetWeight = user.TargetWeight,
             LatestMeasurementDate = latest?.MeasurementDate,
             CaloriesBurned = recentWorkoutCalories,
-            NextAppointment = await database.Appointments.AsNoTracking().Include(x => x.Trainer)
+            NextAppointment = await database.Appointments.AsNoTracking().Include(x => x.Trainer).Include(x => x.HealthcareProfessional).ThenInclude(x => x!.User)
                 .Where(x => x.ClientId == user.Id && x.Status == AppointmentStatus.Approved
                     && (x.AppointmentDate > today || (x.AppointmentDate == today && x.AppointmentTime > time)))
                 .OrderBy(x => x.AppointmentDate).ThenBy(x => x.AppointmentTime).FirstOrDefaultAsync()
@@ -85,11 +86,11 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
                 .Where(x => x.TrainerId == userId && (x.Status == AppointmentStatus.Pending || x.Status == AppointmentStatus.Approved)
                     && (x.AppointmentDate > today || (x.AppointmentDate == today && x.AppointmentTime > time)))
                 .OrderBy(x => x.AppointmentDate).ThenBy(x => x.AppointmentTime).ThenBy(x => x.Id).Take(5)
-                .Select(x => new DashboardAppointment(x.Id, x.Client.FullName, x.Trainer.FullName,
+                .Select(x => new DashboardAppointment(x.Id, x.Client.FullName, x.Trainer != null ? x.Trainer.FullName : x.HealthcareProfessional!.User.FullName,
                     x.AppointmentDate, x.AppointmentTime, x.Status)).ToListAsync(),
             TotalClients = await access.Clients(userId).CountAsync(),
-            ActiveWorkoutPlans = await access.Workouts(userId).CountAsync(x => x.Status == PlanStatus.Active),
-            ActiveDietPlans = await access.Diets(userId).CountAsync(x => x.Status == PlanStatus.Active),
+            ActiveWorkoutPlans = await access.Workouts(userId).CountAsync(x => x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today),
+            ActiveDietPlans = await access.Diets(userId).CountAsync(x => x.Status == PlanStatus.Active && x.StartDate <= today && x.EndDate >= today),
             RecentClients = await database.TrainerClients.AsNoTracking()
                 .Where(x => x.TrainerId == userId && assignedClients.Any(c => c.Id == x.ClientId))
                 .OrderByDescending(x => x.AssignedAt).ThenBy(x => x.ClientId).Take(5)

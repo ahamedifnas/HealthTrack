@@ -1,0 +1,5 @@
+@{ ViewData["Title"] = "Invalid report filters"; }
+<h1>Check your report filters</h1>
+<div asp-validation-summary="All" class="alert alert-danger"></div>
+<p>No report was downloaded. Return to the report and choose a valid date range and status.</p>
+<a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>

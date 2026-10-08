@@ -8,7 +8,11 @@ public class Appointment
 {
     public int Id { get; set; }
     public string ClientId { get; set; } = string.Empty;
-    public string TrainerId { get; set; } = string.Empty;
+    public string? TrainerId { get; set; }
+    public string? HealthcareProfessionalId { get; set; }
+    public HealthcareProfessional? HealthcareProfessional { get; set; }
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped] public string ProviderId => TrainerId ?? HealthcareProfessionalId!;
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped] public string ProviderName => Trainer?.FullName ?? HealthcareProfessional?.User.FullName ?? "Provider unavailable";
     public DateOnly AppointmentDate { get; set; }
     public TimeOnly AppointmentTime { get; set; }
     [Required, MaxLength(1000)] public string Reason { get; set; } = string.Empty;
@@ -17,5 +21,5 @@ public class Appointment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [Timestamp] public byte[] RowVersion { get; set; } = [];
     public ApplicationUser Client { get; set; } = null!;
-    public ApplicationUser Trainer { get; set; } = null!;
+    public ApplicationUser? Trainer { get; set; }
 }

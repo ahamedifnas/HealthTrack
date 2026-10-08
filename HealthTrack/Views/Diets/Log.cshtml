@@ -1,5 +1,5 @@
-@model MealLogForm
-@{ ViewData["Title"] = "Log Meal"; }
+﻿@model MealLogForm
+@{ var editing = ViewData["IsEditing"] is true; ViewData["Title"] = editing ? "Edit Meal Log" : "Log Meal"; }
 <h1>@ViewData["Title"]</h1>
 @if (Model.Plans.Count == 0)
 {
@@ -9,11 +9,11 @@ else
 {
     <p class="text-muted">Record what you ate. The date must be within the plan dates and cannot be in the future.</p>
     <div class="card dashboard-card"><div class="card-body">
-    <form asp-action="Log" method="post">
+    <form asp-action="@(editing ? "EditLog" : "Log")" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
         <div asp-validation-summary="All" class="text-danger" role="alert"></div>
         <div class="row"><div class="col-12 col-md-6 mb-3">
     <label asp-for="DietPlanId" class="form-label"></label>
-    <select asp-for="DietPlanId" class="form-select" asp-items="Model.Plans"></select>
+    @if (editing) { <input asp-for="DietPlanId" type="hidden" /><p class="form-control-plaintext">@Model.Plans.FirstOrDefault(x => x.Value == Model.DietPlanId.ToString())?.Text</p> } else { <select asp-for="DietPlanId" class="form-select" asp-items="Model.Plans"></select> }
     <span asp-validation-for="DietPlanId" class="text-danger"></span>
 </div>
 <div class="col-12 col-md-6 mb-3">
@@ -46,8 +46,9 @@ else
     <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
     <span asp-validation-for="Notes" class="text-danger"></span>
 </div></div>
-        <button class="btn btn-primary" type="submit">Save meal</button>
+        <button class="btn btn-primary" type="submit">@(editing ? "Save changes" : "Save meal")</button>
         <a asp-action="History" class="btn btn-outline-secondary">View history</a>
     </form>
     </div></div>
 }
+

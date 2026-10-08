@@ -11,4 +11,7 @@ public class EditTrainerViewModel
 
     [Required, EmailAddress, StringLength(256)]
     public string Email { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+    [Range(typeof(decimal), "1", "500"), Display(Name = "Target weight (kg)")]
+    public decimal? TargetWeight { get; set; }
 }

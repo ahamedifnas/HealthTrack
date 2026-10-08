@@ -5,13 +5,18 @@
     <div class="report-controls mb-3">
         @if (Model.IsAdminReport)
         {
+            <a asp-controller="ReportDownloads" asp-action="Admin" asp-route-kind="System" asp-route-download="true" class="btn btn-success" download>Download PDF</a>
+            <div class="d-flex gap-2 flex-wrap my-3">
+            @foreach (var kind in Enum.GetValues<HealthTrack.Models.Reports.AdminReportKind>())
+            { <a asp-controller="ReportDownloads" asp-action="Admin" asp-route-kind="@kind" class="btn btn-sm btn-outline-success">@kind Report</a> }
+            </div>
             <a asp-controller="AdminReports" asp-action="Print" class="btn btn-success">Printable Report</a>
             <a asp-controller="Dashboard" asp-action="Admin" class="btn btn-outline-success">Back to Dashboard</a>
             <p class="mt-2 text-muted">Open the printable report and use Ctrl+P to print or save as PDF.</p>
         }
         else
         {
-            <a asp-action="Index" class="btn btn-outline-success">Choose Client Report</a>
+            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-success">Back to Dashboard</a>
             <span class="ms-3 text-muted">Use your browser's Print command (Ctrl+P / Cmd+P) to print or save as PDF.</span>
         }
     </div>
@@ -21,6 +26,7 @@
         <p>Generated @Model.GeneratedAt.ToString("yyyy-MM-dd HH:mm") UTC</p>
     </div>
     <p>@Model.Scope</p>
+    <partial name="_ReportDownload" model="Model" />
     <div class="row g-3 mb-4">
         @foreach (var metric in Model.Metrics)
         {
