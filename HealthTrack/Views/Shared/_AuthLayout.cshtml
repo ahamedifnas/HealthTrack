@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="referrer" content="no-referrer" />
+<title>@ViewData["Title"] - HealthTrack</title>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+<script src="~/js/auth.js" asp-append-version="true" defer></script>
+</head>
+<body class="auth-page">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<main id="main-content" class="auth-shell" tabindex="-1">
+<a class="navbar-brand auth-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark" aria-hidden="true">+</span>HealthTrack</a>
+<div class="auth-card">@RenderBody()</div>
+<footer class="auth-footer">&copy; 2026 HealthTrack &middot; <a asp-controller="Home" asp-action="Privacy">Privacy</a></footer>
+</main>
+</body>
+</html>
+

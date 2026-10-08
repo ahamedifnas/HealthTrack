@@ -75,6 +75,9 @@ namespace HealthTrack.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("RequiresRegistrationEmailVerification")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -166,6 +169,36 @@ namespace HealthTrack.Migrations
                         {
                             t.HasCheckConstraint("CK_Appointment_ExactlyOneProvider", "([TrainerId] IS NOT NULL AND [HealthcareProfessionalId] IS NULL) OR ([TrainerId] IS NULL AND [HealthcareProfessionalId] IS NOT NULL)");
                         });
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.EmailVerificationOtp", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LastSentAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OtpHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("EmailVerificationOtps");
                 });
 
             modelBuilder.Entity("HealthTrack.Models.HealthMeasurement", b =>
@@ -743,6 +776,15 @@ namespace HealthTrack.Migrations
                     b.Navigation("HealthcareProfessional");
 
                     b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.EmailVerificationOtp", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("HealthTrack.Models.EmailVerificationOtp", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HealthTrack.Models.HealthMeasurement", b =>

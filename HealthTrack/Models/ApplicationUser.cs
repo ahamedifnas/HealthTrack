@@ -13,4 +13,6 @@ public class ApplicationUser : IdentityUser
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; } = true;
+    // Opt-in only for new public Client registrations. Legacy and staff accounts remain unaffected.
+    public bool RequiresRegistrationEmailVerification { get; set; }
 }

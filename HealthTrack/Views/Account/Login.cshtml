@@ -1,26 +1,28 @@
 @model HealthTrack.Models.Account.LoginViewModel
 @{ ViewData["Title"] = "Login"; }
+<h1>Login</h1><p class="auth-intro">Welcome back. Sign in to your HealthTrack account.</p>
+@if (TempData["RegistrationVerified"] is true)
+{
+    <div class="alert alert-success" role="status">Your email has been verified. You can now sign in.</div>
+}
+@if (ViewData["PendingEmailVerification"] is true)
+{
+    <p><a asp-action="VerifyEmailOtp">Verify your email or request a new code</a></p>
+}
+<form asp-action="Login" method="post" data-auth-form>
+<div asp-validation-summary="All" class="auth-validation text-danger" role="alert" tabindex="-1"></div>
+<input asp-for="ReturnUrl" type="hidden" />
+<div class="mb-3">
+<label asp-for="Email" class="form-label"></label>
+<input asp-for="Email" class="form-control" autocomplete="email" aria-describedby="Email-error" autofocus />
 
-<h1>Login</h1>
-<div class="row"><div class="col-md-6">
-    <form asp-action="Login" method="post">
-        <input asp-for="ReturnUrl" type="hidden" />
-        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label"></label>
-            <input asp-for="Email" class="form-control" autocomplete="username" />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control" autocomplete="current-password" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-        <div class="form-check mb-3">
-            <input asp-for="RememberMe" class="form-check-input" />
-            <label asp-for="RememberMe" class="form-check-label"></label>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-        <a asp-action="Register" class="ms-2">Create an account</a>
-    </form>
-</div></div>
+
+<span asp-validation-for="Email" id="Email-error" class="text-danger"></span></div>
+<div class="mb-3">
+<label asp-for="Password" class="form-label"></label>
+<div class="auth-password"><input asp-for="Password" class="form-control" autocomplete="current-password" aria-describedby="Password-error"  />
+<button type="button" class="password-toggle" data-password="Password" aria-controls="Password" aria-label="Show password" aria-pressed="false" hidden>Show</button></div>
+
+<span asp-validation-for="Password" id="Password-error" class="text-danger"></span></div>
+<div class="auth-options"><div class="form-check"><input asp-for="RememberMe" class="form-check-input" /><label asp-for="RememberMe" class="form-check-label"></label></div><a asp-action="ForgotPassword">Forgot password?</a></div><button type="submit" class="btn btn-primary w-100">Login</button></form>
+<p class="auth-secondary">New to HealthTrack? <a asp-action="Register">Create an account</a></p>

@@ -9,6 +9,7 @@ namespace HealthTrack.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<EmailVerificationOtp> EmailVerificationOtps => Set<EmailVerificationOtp>();
     public DbSet<ReminderDelivery> ReminderDeliveries => Set<ReminderDelivery>();
     public DbSet<HealthcareProfessional> HealthcareProfessionals => Set<HealthcareProfessional>();
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -26,6 +27,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.Entity<EmailVerificationOtp>().HasOne<ApplicationUser>().WithOne()
+            .HasForeignKey<EmailVerificationOtp>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         builder.Entity<ReminderDelivery>().HasKey(x => new { x.UserId, x.ReminderKey });
         builder.Entity<ReminderDelivery>().HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         builder.Entity<HealthcareProfessional>().HasOne(x => x.User).WithOne().HasForeignKey<HealthcareProfessional>(x => x.UserId).OnDelete(DeleteBehavior.Restrict);

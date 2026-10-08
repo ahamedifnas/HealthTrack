@@ -1,0 +1,22 @@
+.auth-page { min-height: 100vh; }
+.auth-shell { width: 100%; max-width: 520px; margin: clamp(1.5rem, 5vh, 3.5rem) auto; padding: 0 1rem; }
+.auth-brand { display: flex; justify-content: center; margin: 0 0 1.5rem; font-size: 1.5rem; text-decoration: none; }
+.auth-card { padding: 2rem; background: white; border: 1px solid var(--ht-border); border-radius: 1rem; box-shadow: var(--ht-shadow); }
+.auth-card h1 { font-size: 1.65rem; margin-bottom: .65rem; line-height: 1.25; }
+.auth-intro { color: var(--ht-muted); margin-bottom: 1.5rem; }
+.auth-card .form-label { font-size: .925rem; font-weight: 600; }
+.auth-card .form-control { min-height: 46px; border-radius: .55rem; border-color: #acbeb8; }
+.auth-card .btn-primary { padding: .75rem 1rem; border-radius: .55rem; font-weight: 600; }
+.auth-options { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin: .25rem 0 1.5rem; font-size: .9rem; }
+.auth-secondary { text-align: center; margin: 1.5rem 0 0; font-size: .925rem; line-height: 1.8; }
+.auth-footer { text-align: center; margin-top: 1.5rem; font-size: .825rem; color: var(--ht-muted); }
+.auth-password { position: relative; }
+.auth-password:has(.password-toggle:not([hidden])) input { padding-right: 4.5rem; }
+.password-toggle { position: absolute; right: .3rem; top: .25rem; min-height: 38px; min-width: 56px; border: 0; border-radius: .3rem; background: white; color: var(--ht-green-dark); font-size: .85rem; font-weight: 600; }
+.password-toggle:hover { background: var(--ht-teal-soft); }
+.auth-card .text-danger { color: #a52834 !important; font-size: .875rem; }
+.auth-card .input-validation-error { border-color: #a52834; }
+.auth-validation.validation-summary-errors { padding: .85rem; margin-bottom: 1.25rem; border: 1px solid #e2aab0; border-radius: .5rem; background: #fff5f5; }
+.auth-validation ul { padding-left: 1.15rem; margin: 0; }
+@media (max-width: 575px) { .auth-card { padding: 1.5rem 1.25rem; } .auth-card h1 { font-size: 1.5rem; } }
+

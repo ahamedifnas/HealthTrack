@@ -1,0 +1,39 @@
+@model HealthTrack.Models.Account.VerifyEmailOtpViewModel
+@{ ViewData["Title"] = "Verify your email"; }
+<h1>Verify your email</h1>
+@if (Model.DeliveryFailed)
+{
+    <p class="auth-intro">Your account is ready for verification, but we couldn't send the email. Please try Resend OTP after the cooldown.</p>
+}
+else
+{
+    <p class="auth-intro">We sent a 6-digit verification code to your email address. Check your inbox and spam folder.</p>
+}
+@if (TempData["OtpError"] is string error)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (TempData["OtpSuccess"] is string success)
+{
+    <div class="alert alert-success" role="status">@success</div>
+}
+<form asp-action="VerifyEmailOtp" method="post" data-auth-form>
+    <div asp-validation-summary="All" class="auth-validation text-danger" role="alert" tabindex="-1"></div>
+    <div class="mb-3">
+        <label asp-for="Code" class="form-label"></label>
+        <input asp-for="Code" class="form-control" type="text" inputmode="numeric" pattern="[0-9]{6}"
+               maxlength="6" autocomplete="one-time-code" aria-describedby="code-help Code-error" required autofocus />
+        <div id="code-help" class="form-text">Codes expire after 5 minutes. You have up to 5 attempts.</div>
+        <span asp-validation-for="Code" id="Code-error" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Verify Email</button>
+</form>
+<form asp-action="ResendEmailOtp" method="post" class="mt-3" data-auth-form>
+    <button type="submit" class="btn btn-outline-secondary w-100">Resend OTP</button>
+    <p class="form-text text-center mb-0">You can request a new code every 60 seconds.</p>
+    @if (Model.ResendSeconds > 0)
+    {
+        <p class="form-text text-center mb-0" role="status">Please wait @Model.ResendSeconds seconds before requesting another code.</p>
+    }
+</form>
+<p class="auth-secondary"><a asp-action="Login">Back to Login</a></p>
