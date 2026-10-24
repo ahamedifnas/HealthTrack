@@ -1,0 +1,169 @@
+@model HealthTrack.Models.Payments.PaymentTransaction
+@{
+    ViewData["Title"] = "Transaction Details - " + Model.OrderId;
+}
+
+@if (Model.IsDemo) { <div class="alert alert-warning">Demo Payment – No Real Money</div> }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Transaction Audit: @Model.OrderId</h1>
+        <p class="text-muted mb-0">Detailed payment verification and security metadata.</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary">← Back to Transactions</a>
+        @if (Model.Status == HealthTrack.Models.Payments.PaymentStatus.Paid)
+        {
+            <a asp-controller="Payments" asp-action="Receipt" asp-route-orderId="@Model.OrderId" class="btn btn-success ms-2">View Official Receipt</a>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="card dashboard-card mb-4 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3 border-bottom pb-2">Order & Payment Overview</h2>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Order Reference</span>
+                        <strong><code>@Model.OrderId</code></strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">PayHere Payment ID</span>
+                        <span>@(Model.PayHerePaymentId ?? "None (Pending / Not Provided)")</span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Payment Status</span>
+                        @switch (Model.Status)
+                        {
+                            case HealthTrack.Models.Payments.PaymentStatus.Paid:
+                                <span class="badge bg-success">Paid (Verified)</span>
+                                break;
+                            case HealthTrack.Models.Payments.PaymentStatus.Pending:
+                                <span class="badge bg-warning text-dark">Pending IPN</span>
+                                break;
+                            case HealthTrack.Models.Payments.PaymentStatus.Failed:
+                                <span class="badge bg-danger">Failed</span>
+                                break;
+                            case HealthTrack.Models.Payments.PaymentStatus.Cancelled:
+                                <span class="badge bg-secondary">Cancelled</span>
+                                break;
+                            default:
+                                <span class="badge bg-light text-dark">@Model.Status</span>
+                                break;
+                        }
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Payment Method</span>
+                        <span>@(Model.PaymentMethod ?? "Not specified")</span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Amount & Currency</span>
+                        <strong class="text-success fs-5">@Model.Currency @Model.AmountLKR.ToString("N2")</strong>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Server MD5 Signature Verified</span>
+                        @if (Model.SignatureVerified)
+                        {
+                            <span class="text-success fw-semibold">✓ Verified Authentic</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger fw-semibold">✗ Not Verified / Pending</span>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.FailureReason))
+                    {
+                        <div class="col-12">
+                            <span class="text-muted small d-block">Failure / Note Message</span>
+                            <div class="alert alert-warning py-2 mb-0 small">@Model.FailureReason</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Subscription != null)
+        {
+            <div class="card dashboard-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold mb-3 border-bottom pb-2">Activated Client Subscription</h2>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Package Tier (Snapshot)</span>
+                            <strong>@Model.Subscription.PackageNameSnapshot</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Subscription Status</span>
+                            <span class="badge bg-success">@Model.Subscription.Status</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Validity Window</span>
+                            <span>@Model.Subscription.StartDate.ToString("dd MMM yyyy") to @Model.Subscription.EndDate.ToString("dd MMM yyyy")</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Activated Timestamp</span>
+                            <span>@Model.Subscription.ActivatedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <!-- Client Card -->
+        <div class="card dashboard-card mb-4 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="h6 fw-bold mb-3 border-bottom pb-2">Purchasing Client</h3>
+                <div class="mb-2">
+                    <strong class="d-block">@Model.Client.FullName</strong>
+                    <span class="text-muted small">@Model.Client.Email</span>
+                </div>
+                <div class="small text-muted">Client ID: <code>@Model.ClientId</code></div>
+            </div>
+        </div>
+
+        <!-- Timestamps Card -->
+        <div class="card dashboard-card mb-4 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="h6 fw-bold mb-3 border-bottom pb-2">Audit Timestamps</h3>
+                <div class="mb-2">
+                    <span class="text-muted small d-block">Order Initiated</span>
+                    <span>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                </div>
+                @if (Model.PaidAt.HasValue)
+                {
+                    <div class="mb-2">
+                        <span class="text-muted small d-block">Payment Confirmed</span>
+                        <span>@Model.PaidAt.Value.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                    </div>
+                }
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <div>
+                        <span class="text-muted small d-block">Last Updated</span>
+                        <span>@Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Raw Payload Snippet -->
+        @if (!string.IsNullOrEmpty(Model.RawPayload))
+        {
+            <div class="card dashboard-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="h6 fw-bold mb-2">Gateway IPN Payload</h3>
+                    <pre class="bg-light p-2 rounded small text-break mb-0" style="font-size: 0.75rem;">@Model.RawPayload</pre>
+                </div>
+            </div>
+        }
+    </div>
+</div>

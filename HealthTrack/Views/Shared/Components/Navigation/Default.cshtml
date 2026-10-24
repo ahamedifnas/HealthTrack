@@ -1,28 +1,70 @@
 @model HealthTrack.ViewComponents.NavigationViewModel
-<details class="healthtrack-menu">
-    <summary class="navbar-toggler"><span class="navbar-toggler-icon" aria-hidden="true"></span><span class="visually-hidden">Toggle navigation menu</span></summary>
-    <div class="healthtrack-menu-panel navbar-collapse">
-    <ul class="navbar-nav healthtrack-links">
-        @foreach (var link in Model.Links)
-        {
-            <li class="nav-item"><a class="nav-link" asp-controller="@link.Controller" asp-action="@link.Action">@link.Label</a></li>
-        }
-    </ul>
-    <ul class="navbar-nav healthtrack-account ms-xl-auto">
-        @if (Model.ShowNotifications)
-        {
-            <li class="nav-item"><a class="nav-link notification-link" asp-controller="Notifications" asp-action="Index">Notifications <span class="badge dashboard-badge" aria-label="@Model.UnreadNotifications unread notifications">@Model.UnreadNotifications</span></a></li>
-        }
-        @if (Model.IsAuthenticated)
-        {
-            <li class="nav-item healthtrack-greeting"><span class="nav-link" title="Hello, @Model.FullName!">Hello, @Model.FullName!</span></li>
-            <li class="nav-item"><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="nav-link btn btn-link logout-button">Logout</button></form></li>
-        }
-        else
-        {
-            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a></li>
-            <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a></li>
-        }
-    </ul>
-    </div>
-</details>
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+<nav class="ht-sidebar-nav" aria-label="Main Navigation">
+    <div class="ht-nav-section-title">Navigation</div>
+    @foreach (var link in Model.Links)
+    {
+        var isActive = string.Equals(currentController, link.Controller, StringComparison.OrdinalIgnoreCase)
+            && (string.IsNullOrEmpty(link.Action) || string.Equals(currentAction, link.Action, StringComparison.OrdinalIgnoreCase) || (link.Action == "Index" && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase)));
+        var isNotificationLink = string.Equals(link.Controller, "Notifications", StringComparison.OrdinalIgnoreCase);
+
+        <a class="ht-nav-item @(isActive ? "active" : "")" asp-controller="@link.Controller" asp-action="@link.Action" title="@link.Label">
+            @switch (link.Icon)
+            {
+                case "grid":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    break;
+                case "users":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    break;
+                case "user-check":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                    break;
+                case "calendar":
+                case "calendar-plus":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    break;
+                case "award":
+                case "star":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                    break;
+                case "credit-card":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    break;
+                case "bar-chart":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+                    break;
+                case "bell":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    break;
+                case "settings":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    break;
+                case "activity":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    break;
+                case "coffee":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                    break;
+                case "clock":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    break;
+                case "trending-up":
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                    break;
+                default:
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg>
+                    break;
+            }
+            <span>@link.Label</span>
+            @if (isNotificationLink && Model.UnreadNotifications > 0)
+            {
+                <span class="ht-nav-badge" aria-label="@Model.UnreadNotifications unread notifications">@Model.UnreadNotifications</span>
+            }
+        </a>
+    }
+</nav>

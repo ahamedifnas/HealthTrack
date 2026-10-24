@@ -1,0 +1,103 @@
+@model List<HealthTrack.Models.Payments.PaymentHistoryItemViewModel>
+@{
+    ViewData["Title"] = "Payment History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">My Payment History</h1>
+        <p class="text-muted mb-0">Record of your membership transactions, payments, and receipts.</p>
+    </div>
+    <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-outline-success">
+        View Membership Packages
+    </a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="card dashboard-card p-5 text-center">
+        <p class="text-muted mb-3">You have not completed any membership payments yet.</p>
+        <div>
+            <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-success">
+                Browse Membership Packages
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card dashboard-card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Order Reference</th>
+                        <th scope="col">Package</th>
+                        <th scope="col">Amount (LKR)</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Date</th>
+                        <th scope="col" class="text-end">Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><code>@item.OrderId @if (item.IsDemo) { <span class="badge bg-warning text-dark">Demo Payment – No Real Money</span> }</code></td>
+                            <td><strong>@item.PackageName</strong></td>
+                            <td><strong class="text-success">LKR @item.AmountLKR.ToString("N2")</strong></td>
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case HealthTrack.Models.Payments.PaymentStatus.Paid:
+                                        <span class="badge bg-success">Paid</span>
+                                        break;
+                                    case HealthTrack.Models.Payments.PaymentStatus.Pending:
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        break;
+                                    case HealthTrack.Models.Payments.PaymentStatus.Failed:
+                                        <span class="badge bg-danger">Failed</span>
+                                        break;
+                                    case HealthTrack.Models.Payments.PaymentStatus.Cancelled:
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-light text-dark">@item.Status</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @if (item.PaidAt.HasValue)
+                                {
+                                    <span>@item.PaidAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (item.Status == HealthTrack.Models.Payments.PaymentStatus.Paid)
+                                {
+                                    <a asp-action="Receipt" asp-route-orderId="@item.OrderId" class="btn btn-sm btn-outline-success">
+                                        View Receipt
+                                    </a>
+                                }
+                                else if (item.Status == HealthTrack.Models.Payments.PaymentStatus.Pending)
+                                {
+                                    <a asp-action="Success" asp-route-orderId="@item.OrderId" class="btn btn-sm btn-outline-warning">
+                                        Check Status
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

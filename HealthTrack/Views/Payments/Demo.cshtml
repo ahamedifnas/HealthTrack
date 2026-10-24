@@ -1,0 +1,28 @@
+﻿@model HealthTrack.Models.Payments.PaymentTransaction
+@{
+    ViewData["Title"] = "DEMO PAYMENT – NO REAL MONEY";
+}
+<h1>DEMO PAYMENT – NO REAL MONEY</h1>
+<p>This local simulation never contacts PayHere or charges a card.</p>
+<dl>
+    <dt>Order</dt><dd>@Model.OrderId</dd>
+    <dt>Package</dt><dd>@Model.PackageNameSnapshot</dd>
+    <dt>Simulated amount</dt><dd>LKR @Model.AmountLKR.ToString("N2")</dd>
+    <dt>Status</dt><dd>@Model.Status</dd>
+</dl>
+@if (Model.Status == HealthTrack.Models.Payments.PaymentStatus.Pending)
+{
+    <form asp-action="CompleteDemo" method="post">
+        <input type="hidden" name="orderId" value="@Model.OrderId" />
+        <button class="btn btn-success" name="outcome" value="success">Simulate success</button>
+        <button class="btn btn-danger" name="outcome" value="failed">Simulate failure</button>
+        <button class="btn btn-secondary" name="outcome" value="cancelled">Simulate cancellation</button>
+    </form>
+}
+else
+{
+    <p>@Model.FailureReason</p>
+    <a asp-action="Membership">View membership</a>
+    <a asp-action="Receipt" asp-route-orderId="@Model.OrderId">View demo receipt</a>
+}
+<a asp-controller="MembershipPackages" asp-action="Index">Back to packages</a>

@@ -4,7 +4,10 @@ param([string]$BaseUrl = 'http://localhost:5086')
 $ErrorActionPreference='Stop'
 $prefix='trainer-management-' + [Guid]::NewGuid().ToString('N')
 $password='Ht5!' + [Guid]::NewGuid().ToString('N')
-$database=New-Object System.Data.SqlClient.SqlConnection('Server=(localdb)\MSSQLLocalDB;Database=HealthTrackDB;Integrated Security=True;TrustServerCertificate=True')
+$settings = Get-Content -Raw "$PSScriptRoot\..\appsettings.json" | ConvertFrom-Json
+$connection = $settings.ConnectionStrings.DefaultConnection
+if ($env:ConnectionStrings__DefaultConnection) { $connection = $env:ConnectionStrings__DefaultConnection }
+$database = New-Object System.Data.SqlClient.SqlConnection($connection)
 $database.Open()
 $script:passed=0
 function Query([string]$sql, [hashtable]$parameters=@{}) {
@@ -36,6 +39,7 @@ try {
     }
     $adminId=Query 'SELECT Id FROM AspNetUsers WHERE Email=@email' @{email=$adminEmail}
     $clientId=Query 'SELECT Id FROM AspNetUsers WHERE Email=@email' @{email=$clientEmail}
+    $null=Query 'UPDATE AspNetUsers SET EmailConfirmed=1, RequiresRegistrationEmailVerification=0 WHERE Email IN (@a, @c)' @{a=$adminEmail; c=$clientEmail}
     $null=Query "DELETE FROM AspNetUserRoles WHERE UserId=@id; INSERT INTO AspNetUserRoles SELECT @id,Id FROM AspNetRoles WHERE Name='Admin';" @{id=$adminId}
     $admin=New-Object Microsoft.PowerShell.Commands.WebRequestSession
     $client=New-Object Microsoft.PowerShell.Commands.WebRequestSession

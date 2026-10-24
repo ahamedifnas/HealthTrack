@@ -1,0 +1,66 @@
+@model HealthTrack.Models.Memberships.MembershipPackageForm
+@{
+    ViewData["Title"] = "Create Membership Package";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card dashboard-card">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-2">Create Membership Package</h1>
+                <p class="text-muted mb-4">Define a new membership tier, pricing in Sri Lankan Rupees, duration, and benefits.</p>
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-semibold">Package Name</label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. Pro Fitness" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief summary of what this tier offers..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-sm-6">
+                            <label asp-for="PriceLKR" class="form-label fw-semibold">Price (LKR)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">LKR</span>
+                                <input asp-for="PriceLKR" class="form-control" type="number" step="0.01" min="0.01" placeholder="3500.00" />
+                            </div>
+                            <span asp-validation-for="PriceLKR" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label asp-for="DurationDays" class="form-label fw-semibold">Duration (Days)</label>
+                            <input asp-for="DurationDays" class="form-control" type="number" min="1" max="3650" placeholder="30" />
+                            <span asp-validation-for="DurationDays" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="BenefitsText" class="form-label fw-semibold">Package Benefits (one item per line)</label>
+                        <textarea asp-for="BenefitsText" class="form-control" rows="5" placeholder="Personalized workout plan&#10;Dedicated trainer support&#10;Unlimited diet logs"></textarea>
+                        <div class="form-text small">Each line will appear as a feature bullet point in the client catalog.</div>
+                        <span asp-validation-for="BenefitsText" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveCheck" />
+                        <label class="form-check-label" for="isActiveCheck">
+                            Active (available for client purchase immediately)
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success px-4">Create Package</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

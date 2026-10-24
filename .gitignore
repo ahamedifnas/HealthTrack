@@ -480,3 +480,45 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# HealthTrack local/private configuration (keep runtime files on disk).
+# Ignore rules do not remove files already tracked by Git.
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
+!appsettings.*.example.json
+!appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+secrets.*.json
+**/[Uu]ser[Ss]ecrets/
+.env.*
+!.env.example
+!.env.*.example
+*.private.json
+*.local.json
+*.local.config
+*.p12
+*.key
+*.pem
+
+# Publish output, local backups, databases and logs.
+[Pp]ublish/
+[Pp]ublish-output/
+[Bb]ackups/
+*.bak
+*.backup
+*.old
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.dump
+*.trn
+*.out.log
+*.err.log
+
+# Local screenshot helper currently embeds development login credentials.
+HealthTrack/Tests/CaptureScreenshots.cjs

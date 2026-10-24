@@ -45,4 +45,8 @@ public class ClientDashboardViewModel
     public DateOnly? LatestMeasurementDate { get; set; }
     public string FullName { get; set; } = string.Empty;
     public HealthTrack.Models.Appointments.Appointment? NextAppointment { get; set; }
+    public HealthTrack.Models.Memberships.ClientSubscription? ActiveSubscription { get; set; }
+    public int? SubscriptionDaysRemaining { get; set; }
+    public bool HasExpiringSubscription => SubscriptionDaysRemaining is >= 0 and <= 3;
+    public bool HasExpiredSubscription { get; set; }
 }

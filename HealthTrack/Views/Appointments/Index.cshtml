@@ -7,6 +7,7 @@
 <p class="text-muted">All appointment dates and times use @Model.TimeZoneId.</p>
 @if (Model.CanBook) { <p><a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Appointments" asp-route-download="true" class="btn btn-success" download>Download PDF</a> <a asp-controller="ReportDownloads" asp-action="Client" asp-route-kind="Appointments" class="btn btn-outline-success">Filter report</a></p> }
 @if (User.IsInRole(AppRoles.HealthcareProfessional)) { <p><a asp-controller="ReportDownloads" asp-action="Healthcare" asp-route-download="true" class="btn btn-success" download>Download PDF</a> <a asp-controller="ReportDownloads" asp-action="Healthcare" class="btn btn-outline-success">Filter report</a></p> }
+@if (User.IsInRole(AppRoles.Trainer)) { <p><a asp-controller="TrainerAvailability" asp-action="Index" class="btn btn-outline-success"><i class="bi bi-clock me-1"></i> Manage Availability</a> <a asp-controller="TrainerAvailability" asp-action="Leave" class="btn btn-outline-danger"><i class="bi bi-airplane me-1"></i> Time Off & Leave</a></p> }
 @if (Model.CanBook)
 {
     <a asp-action="Book" class="btn btn-primary mb-3">Book Appointment</a>

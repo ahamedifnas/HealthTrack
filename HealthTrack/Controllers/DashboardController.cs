@@ -13,7 +13,13 @@ using Microsoft.EntityFrameworkCore;
 namespace HealthTrack.Controllers;
 
 [Authorize]
-public class DashboardController(UserManager<ApplicationUser> users, ApplicationDbContext database, AppointmentClock clock, PlanAccess access, AdminDashboardData adminDashboard) : Controller
+public class DashboardController(
+    UserManager<ApplicationUser> users,
+    ApplicationDbContext database,
+    AppointmentClock clock,
+    PlanAccess access,
+    AdminDashboardData adminDashboard,
+    HealthTrack.Services.Memberships.IMembershipSubscriptionService membershipService) : Controller
 {
     public IActionResult Index()
     {
@@ -41,6 +47,11 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
             .GroupBy(x => x.ClientId)
             .Select(logs => (long?)logs.Sum(x => (long)x.CaloriesBurned))
             .FirstOrDefaultAsync();
+
+        var activeSub = await membershipService.GetActiveSubscriptionAsync(user.Id);
+        var daysRemaining = activeSub != null ? Math.Max(0, activeSub.EndDate.DayNumber - today.DayNumber) : (int?)null;
+        var hasExpired = activeSub == null && await database.ClientSubscriptions.AnyAsync(s => s.ClientId == user.Id && (s.Status == HealthTrack.Models.Memberships.SubscriptionStatus.Expired || s.EndDate < today));
+
         return View(new ClientDashboardViewModel
         {
             FullName = user.FullName,
@@ -62,6 +73,9 @@ public class DashboardController(UserManager<ApplicationUser> users, Application
             CurrentWeight = latest?.WeightKg, BMI = latest?.BMI, TargetWeight = user.TargetWeight,
             LatestMeasurementDate = latest?.MeasurementDate,
             CaloriesBurned = recentWorkoutCalories,
+            ActiveSubscription = activeSub,
+            SubscriptionDaysRemaining = daysRemaining,
+            HasExpiredSubscription = hasExpired,
             NextAppointment = await database.Appointments.AsNoTracking().Include(x => x.Trainer).Include(x => x.HealthcareProfessional).ThenInclude(x => x!.User)
                 .Where(x => x.ClientId == user.Id && x.Status == AppointmentStatus.Approved
                     && (x.AppointmentDate > today || (x.AppointmentDate == today && x.AppointmentTime > time)))

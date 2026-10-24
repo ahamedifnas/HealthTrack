@@ -1,0 +1,221 @@
+@model HealthTrack.Models.Memberships.ClientMembershipPortalViewModel
+@{
+    ViewData["Title"] = "My Membership";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">My Membership Hub</h1>
+        <p class="text-muted mb-0">Track your current gym membership tier, days remaining, benefits, and renewals.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="History" class="btn btn-outline-secondary">Payment History</a>
+        <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-outline-success">Browse All Plans</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Active Membership Section -->
+@if (Model.HasActiveSubscription && Model.ActiveSubscription != null)
+{
+    var sub = Model.ActiveSubscription;
+    <div class="card dashboard-card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center g-4">
+                <div class="col-12 col-lg-7">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-success px-3 py-2 text-uppercase">Active Member</span>
+                        @if (Model.IsExpiringSoon)
+                        {
+                            <span class="badge bg-warning text-dark px-3 py-2 text-uppercase">Expiring in @Model.DaysRemaining Day@(Model.DaysRemaining == 1 ? "" : "s")</span>
+                        }
+                    </div>
+
+                    <h2 class="display-6 fw-bold text-success mb-2">@sub.PackageNameSnapshot</h2>
+                    <p class="text-muted mb-3">
+                        Coverage: <strong>@sub.StartDate.ToString("dd MMMM yyyy")</strong> to <strong>@sub.EndDate.ToString("dd MMMM yyyy")</strong>
+                    </p>
+
+                    <!-- Days Remaining Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Elapsed: @Model.ElapsedDays days</span>
+                            <span class="fw-bold @(Model.IsExpiringSoon ? "text-danger" : "text-success")">
+                                @(Model.DaysRemaining == 0 ? "Expires today" : $"{Model.DaysRemaining} days remaining")
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;" role="progressbar" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar @(Model.IsExpiringSoon ? "bg-warning" : "bg-success")" style="width: @Model.ProgressPercent%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 pt-2">
+                        <a asp-action="Checkout" asp-route-packageId="@sub.MembershipPackageId" class="btn btn-success fw-semibold px-4">
+                            🔄 Renew / Extend Membership
+                        </a>
+                        <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-outline-success">
+                            Upgrade / Switch Plan
+                        </a>
+                        @if (sub.PaymentTransaction != null)
+                        {
+                            <a asp-action="Receipt" asp-route-orderId="@sub.PaymentTransaction.OrderId" class="btn btn-outline-secondary">
+                                🖨️ View Official Receipt
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-5">
+                    <div class="bg-light p-4 rounded-3 border">
+                        <h3 class="h6 fw-bold text-uppercase text-muted mb-3">Included Member Benefits</h3>
+                        @if (Model.CurrentBenefits.Count > 0)
+                        {
+                            <ul class="list-unstyled mb-0">
+                                @foreach (var benefit in Model.CurrentBenefits)
+                                {
+                                    <li class="d-flex align-items-start mb-2">
+                                        <span class="text-success me-2 fw-bold">✓</span>
+                                        <span class="small">@benefit</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="small text-muted mb-0">Certified trainer booking, customized workouts, and comprehensive health monitoring included.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- No Active Subscription Card -->
+    <div class="card dashboard-card border-0 shadow-sm mb-4 text-center p-4 p-md-5">
+        <div class="py-3">
+            <span class="display-5 mb-3 d-block">🏋️‍♂️</span>
+            <h2 class="h3 fw-bold mb-2">No Active Membership Subscription</h2>
+            <p class="text-muted mx-auto mb-4" style="max-width: 580px;">
+                You do not currently have an active gym membership. Select a flexible membership package to unlock unlimited certified trainer consultations, bespoke diet & workout programs, and verified health progress metrics.
+            </p>
+            <div>
+                <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-success btn-lg px-4 fw-semibold">
+                    Explore Membership Packages
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Past Subscriptions History -->
+<div class="card dashboard-card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+        <h2 class="h5 fw-bold mb-1">Subscription & Renewal History</h2>
+        <p class="text-muted small mb-0">Record of your current and prior membership cycles.</p>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.PastSubscriptions.Count == 0 && !Model.HasActiveSubscription)
+        {
+            <div class="p-4 text-center text-muted small">No subscription history recorded yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">Tier / Package</th>
+                            <th scope="col">Duration</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Active Period</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end pe-4">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ActiveSubscription != null)
+                        {
+                            var s = Model.ActiveSubscription;
+                            <tr class="table-success bg-opacity-10">
+                                <td class="ps-4">
+                                    <strong>@s.PackageNameSnapshot</strong>
+                                    <span class="badge bg-success ms-2">Current</span>
+                                </td>
+                                <td>@s.DurationDaysSnapshot Days</td>
+                                <td><strong>LKR @s.AmountPaidLKR.ToString("N2")</strong></td>
+                                <td>@s.StartDate.ToString("yyyy-MM-dd") to @s.EndDate.ToString("yyyy-MM-dd")</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td class="text-end pe-4">
+                                    @if (s.PaymentTransaction != null)
+                                    {
+                                        <a asp-action="Receipt" asp-route-orderId="@s.PaymentTransaction.OrderId" class="btn btn-sm btn-outline-success">
+                                            View Receipt
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+
+                        @foreach (var sub in Model.PastSubscriptions)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <strong>@sub.PackageNameSnapshot</strong>
+                                </td>
+                                <td>@sub.DurationDaysSnapshot Days</td>
+                                <td>LKR @sub.AmountPaidLKR.ToString("N2")</td>
+                                <td>@sub.StartDate.ToString("yyyy-MM-dd") to @sub.EndDate.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    @switch (sub.Status)
+                                    {
+                                        case HealthTrack.Models.Memberships.SubscriptionStatus.Renewed:
+                                            <span class="badge bg-info text-dark">Renewed</span>
+                                            break;
+                                        case HealthTrack.Models.Memberships.SubscriptionStatus.Expired:
+                                            <span class="badge bg-secondary">Expired</span>
+                                            break;
+                                        case HealthTrack.Models.Memberships.SubscriptionStatus.Cancelled:
+                                            <span class="badge bg-danger">Cancelled</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-light text-dark">@sub.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (sub.PaymentTransaction != null)
+                                    {
+                                        <a asp-action="Receipt" asp-route-orderId="@sub.PaymentTransaction.OrderId" class="btn btn-sm btn-outline-secondary">
+                                            View Receipt
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

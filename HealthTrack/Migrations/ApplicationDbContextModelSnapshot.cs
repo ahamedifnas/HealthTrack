@@ -171,6 +171,134 @@ namespace HealthTrack.Migrations
                         });
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerAvailability", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("EffectiveEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("EffectiveStartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SlotDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("TrainerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainerId", "DayOfWeek", "IsActive");
+
+                    b.ToTable("TrainerAvailabilities");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerAvailabilityBreak", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeOnly>("BreakEndTime")
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
+
+                    b.Property<TimeOnly>("BreakStartTime")
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TrainerAvailabilityId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainerAvailabilityId");
+
+                    b.ToTable("TrainerAvailabilityBreaks");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerUnavailability", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
+
+                    b.Property<bool>("IsFullDay")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TrainerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainerId", "StartDate", "EndDate", "Status");
+
+                    b.ToTable("TrainerUnavailabilities");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.EmailVerificationOtp", b =>
                 {
                     b.Property<string>("UserId")
@@ -265,6 +393,110 @@ namespace HealthTrack.Migrations
                     b.ToTable("HealthcareProfessionals");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.Memberships.ClientSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActivatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AdminNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("AmountPaidLKR")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DurationDaysSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MembershipPackageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PackageNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PaymentTransactionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RenewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipPackageId");
+
+                    b.HasIndex("PaymentTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("ClientId", "Status", "EndDate");
+
+                    b.ToTable("ClientSubscriptions");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Memberships.MembershipPackage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BenefitsJson")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PriceLKR")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MembershipPackages");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -301,6 +533,95 @@ namespace HealthTrack.Migrations
                     b.HasIndex("UserId", "IsRead", "CreatedAt");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Payments.PaymentTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AmountLKR")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("DurationDaysSnapshot")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("MembershipPackageId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDemo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PackageNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PayHerePaymentId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RawPayload")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<bool>("SignatureVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("MembershipPackageId");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("PaymentTransactions");
                 });
 
             modelBuilder.Entity("HealthTrack.Models.ReminderDelivery", b =>
@@ -778,6 +1099,39 @@ namespace HealthTrack.Migrations
                     b.Navigation("Trainer");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerAvailability", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "Trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerAvailabilityBreak", b =>
+                {
+                    b.HasOne("HealthTrack.Models.Appointments.TrainerAvailability", "TrainerAvailability")
+                        .WithMany("Breaks")
+                        .HasForeignKey("TrainerAvailabilityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TrainerAvailability");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerUnavailability", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "Trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Trainer");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.EmailVerificationOtp", b =>
                 {
                     b.HasOne("HealthTrack.Models.ApplicationUser", null)
@@ -809,6 +1163,33 @@ namespace HealthTrack.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HealthTrack.Models.Memberships.ClientSubscription", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HealthTrack.Models.Memberships.MembershipPackage", "MembershipPackage")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("MembershipPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HealthTrack.Models.Payments.PaymentTransaction", "PaymentTransaction")
+                        .WithOne("Subscription")
+                        .HasForeignKey("HealthTrack.Models.Memberships.ClientSubscription", "PaymentTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("MembershipPackage");
+
+                    b.Navigation("PaymentTransaction");
+                });
+
             modelBuilder.Entity("HealthTrack.Models.Notification", b =>
                 {
                     b.HasOne("HealthTrack.Models.ApplicationUser", null)
@@ -816,6 +1197,25 @@ namespace HealthTrack.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Payments.PaymentTransaction", b =>
+                {
+                    b.HasOne("HealthTrack.Models.ApplicationUser", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HealthTrack.Models.Memberships.MembershipPackage", "MembershipPackage")
+                        .WithMany("Transactions")
+                        .HasForeignKey("MembershipPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("MembershipPackage");
                 });
 
             modelBuilder.Entity("HealthTrack.Models.ReminderDelivery", b =>
@@ -1005,6 +1405,23 @@ namespace HealthTrack.Migrations
             modelBuilder.Entity("HealthTrack.Models.ApplicationUser", b =>
                 {
                     b.Navigation("HealthMeasurements");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Appointments.TrainerAvailability", b =>
+                {
+                    b.Navigation("Breaks");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Memberships.MembershipPackage", b =>
+                {
+                    b.Navigation("Subscriptions");
+
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("HealthTrack.Models.Payments.PaymentTransaction", b =>
+                {
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("HealthTrack.Models.Training.DietPlan", b =>

@@ -1,0 +1,193 @@
+@model HealthTrack.Models.Appointments.TrainerAvailabilityForm
+@{
+    ViewData["Title"] = $"Edit Schedule - {Model.DayOfWeek}";
+}
+
+<section class="dashboard-heading mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="h2 mb-1"><i class="bi bi-pencil-square text-success me-2"></i>Edit Schedule - @Model.DayOfWeek</h1>
+            <p class="text-muted mb-0">Update working hours, slot duration, and break periods for @Model.TrainerName.</p>
+        </div>
+        <a asp-action="Index" asp-route-trainerId="@Model.TrainerId" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Schedule
+        </a>
+    </div>
+</section>
+
+<div class="card dashboard-card border-0 shadow-sm max-w-750">
+    <div class="card-body p-4">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" id="editScheduleForm">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="TrainerId" />
+            <input type="hidden" asp-for="RowVersion" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger shadow-sm mb-4" role="alert"></div>
+            }
+
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <label asp-for="DayOfWeek" class="form-label fw-bold">Day of the Week</label>
+                    <select asp-for="DayOfWeek" class="form-select">
+                        <option value="@DayOfWeek.Monday">Monday</option>
+                        <option value="@DayOfWeek.Tuesday">Tuesday</option>
+                        <option value="@DayOfWeek.Wednesday">Wednesday</option>
+                        <option value="@DayOfWeek.Thursday">Thursday</option>
+                        <option value="@DayOfWeek.Friday">Friday</option>
+                        <option value="@DayOfWeek.Saturday">Saturday</option>
+                        <option value="@DayOfWeek.Sunday">Sunday</option>
+                    </select>
+                    <span asp-validation-for="DayOfWeek" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label asp-for="SlotDurationMinutes" class="form-label fw-bold">Slot Duration</label>
+                    <select asp-for="SlotDurationMinutes" class="form-select">
+                        <option value="30">30 Minutes</option>
+                        <option value="45">45 Minutes</option>
+                        <option value="60">60 Minutes (1 Hour)</option>
+                        <option value="90">90 Minutes</option>
+                        <option value="120">120 Minutes (2 Hours)</option>
+                    </select>
+                    <span asp-validation-for="SlotDurationMinutes" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-6">
+                    <label asp-for="StartTime" class="form-label fw-bold">Work Start Time</label>
+                    <input asp-for="StartTime" asp-format="{0:HH:mm}" class="form-control" type="time" />
+                    <span asp-validation-for="StartTime" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label asp-for="EndTime" class="form-label fw-bold">Work End Time</label>
+                    <input asp-for="EndTime" asp-format="{0:HH:mm}" class="form-control" type="time" />
+                    <span asp-validation-for="EndTime" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Optional Date Range -->
+            <div class="card bg-light border-0 p-3 mb-4">
+                <h6 class="fw-bold mb-2"><i class="bi bi-calendar-range me-1 text-primary"></i> Optional Effective Date Range</h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label asp-for="EffectiveStartDate" class="form-label small fw-semibold">Effective Start Date</label>
+                        <input asp-for="EffectiveStartDate" class="form-control" type="date" />
+                        <span asp-validation-for="EffectiveStartDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="EffectiveEndDate" class="form-label small fw-semibold">Effective End Date</label>
+                        <input asp-for="EffectiveEndDate" class="form-control" type="date" />
+                        <span asp-validation-for="EffectiveEndDate" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breaks Section -->
+            <div class="card bg-light border-0 p-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-cup-hot me-1 text-warning"></i> Break Periods</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addBreakBtn">
+                        <i class="bi bi-plus me-1"></i> Add Break
+                    </button>
+                </div>
+                <div id="breaksContainer" class="d-flex flex-column gap-2">
+                    @for (var i = 0; i < Model.Breaks.Count; i++)
+                    {
+                        <div class="row g-2 align-items-center break-row bg-white p-2 rounded border">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold mb-1">Break Start</label>
+                                <input type="time" name="Breaks[@i].BreakStartTime" class="form-control form-control-sm" value="@Model.Breaks[i].BreakStartTime?.ToString("HH:mm")" required />
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold mb-1">Break End</label>
+                                <input type="time" name="Breaks[@i].BreakEndTime" class="form-control form-control-sm" value="@Model.Breaks[i].BreakEndTime?.ToString("HH:mm")" required />
+                            </div>
+                            <div class="col-10 col-md-3">
+                                <label class="form-label small fw-semibold mb-1">Description</label>
+                                <input type="text" name="Breaks[@i].Description" class="form-control form-control-sm" value="@Model.Breaks[i].Description" maxlength="100" />
+                            </div>
+                            <div class="col-2 col-md-1 text-end pt-md-3">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-break-btn" title="Remove Break">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div id="noBreaksText" class="text-muted small fst-italic @(Model.Breaks.Count > 0 ? "d-none" : "")">No breaks added yet.</div>
+            </div>
+
+            <div class="form-check form-switch mb-4">
+                <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive" id="isActiveSwitch">
+                <label class="form-check-label fw-semibold" for="isActiveSwitch">Enable this schedule for client bookings</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-check-circle me-1"></i> Update Schedule
+                </button>
+                <a asp-action="Index" asp-route-trainerId="@Model.TrainerId" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const breaksContainer = document.getElementById("breaksContainer");
+    const noBreaksText = document.getElementById("noBreaksText");
+    const addBreakBtn = document.getElementById("addBreakBtn");
+    let breakIndex = @Model.Breaks.Count;
+
+    // Attach remove handlers to existing breaks
+    document.querySelectorAll(".remove-break-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            btn.closest(".break-row").remove();
+            if (breaksContainer.children.length === 0) {
+                noBreaksText.classList.remove("d-none");
+            }
+        });
+    });
+
+    addBreakBtn.addEventListener("click", function () {
+        noBreaksText.classList.add("d-none");
+        const row = document.createElement("div");
+        row.className = "row g-2 align-items-center break-row bg-white p-2 rounded border";
+        row.innerHTML = `
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold mb-1">Break Start</label>
+                <input type="time" name="Breaks[${breakIndex}].BreakStartTime" class="form-control form-control-sm" value="12:00" required />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold mb-1">Break End</label>
+                <input type="time" name="Breaks[${breakIndex}].BreakEndTime" class="form-control form-control-sm" value="13:00" required />
+            </div>
+            <div class="col-10 col-md-3">
+                <label class="form-label small fw-semibold mb-1">Description</label>
+                <input type="text" name="Breaks[${breakIndex}].Description" class="form-control form-control-sm" value="Lunch Break" maxlength="100" />
+            </div>
+            <div class="col-2 col-md-1 text-end pt-md-3">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-break-btn" title="Remove Break">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        `;
+
+        row.querySelector(".remove-break-btn").addEventListener("click", function () {
+            row.remove();
+            if (breaksContainer.children.length === 0) {
+                noBreaksText.classList.remove("d-none");
+            }
+        });
+
+        breaksContainer.appendChild(row);
+        breakIndex++;
+    });
+});
+</script>
+}

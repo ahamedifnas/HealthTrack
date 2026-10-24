@@ -1,0 +1,165 @@
+@model HealthTrack.Models.Memberships.AdminSubscriptionManageViewModel
+@{
+    ViewData["Title"] = "Manage Subscription - #" + Model.SubscriptionId;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Manage Subscription #@Model.SubscriptionId</h1>
+        <p class="text-muted mb-0">Review subscription standing, grant administrative extensions, or manage status.</p>
+    </div>
+    <a asp-action="Subscriptions" class="btn btn-outline-secondary">← Back to Subscriptions</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Subscription Overview Card -->
+    <div class="col-12 col-lg-6">
+        <div class="card dashboard-card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3 border-bottom pb-2">Subscription Details</h2>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Member Name</span>
+                        <strong>@Model.ClientName</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Member Email</span>
+                        <span>@Model.ClientEmail</span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Package Tier</span>
+                        <strong class="text-success">@Model.PackageName</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Amount Paid</span>
+                        <strong>LKR @Model.AmountPaidLKR.ToString("N2")</strong>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Current Status</span>
+                        @switch (Model.Status)
+                        {
+                            case HealthTrack.Models.Memberships.SubscriptionStatus.Active:
+                                <span class="badge bg-success">Active</span>
+                                break;
+                            case HealthTrack.Models.Memberships.SubscriptionStatus.Renewed:
+                                <span class="badge bg-info text-dark">Renewed</span>
+                                break;
+                            case HealthTrack.Models.Memberships.SubscriptionStatus.Expired:
+                                <span class="badge bg-secondary">Expired</span>
+                                break;
+                            case HealthTrack.Models.Memberships.SubscriptionStatus.Cancelled:
+                                <span class="badge bg-danger">Cancelled</span>
+                                break;
+                            default:
+                                <span class="badge bg-light text-dark">@Model.Status</span>
+                                break;
+                        }
+                    </div>
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Validity Coverage</span>
+                        <span>@Model.StartDate.ToString("dd MMM yyyy") — <strong>@Model.EndDate.ToString("dd MMM yyyy")</strong></span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.LinkedOrderId))
+                    {
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Linked Payment Order</span>
+                            <a asp-controller="Payments" asp-action="Receipt" asp-route-orderId="@Model.LinkedOrderId" class="btn btn-sm btn-outline-secondary mt-1">
+                                <code>@Model.LinkedOrderId</code>
+                            </a>
+                        </div>
+                    }
+
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Activated Date</span>
+                        <span>@Model.ActivatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.AdminNotes))
+                    {
+                        <div class="col-12">
+                            <span class="text-muted small d-block">Audit & Administrative Notes</span>
+                            <div class="alert alert-info py-2 mb-0 small">@Model.AdminNotes</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrative Actions Form -->
+    <div class="col-12 col-lg-6">
+        <!-- Extend Subscription -->
+        <div class="card dashboard-card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3 border-bottom pb-2 text-success">Grant Courtesy Extension</h2>
+                <p class="text-muted small mb-3">
+                    Add extra days to this member's subscription (e.g. compensation for gym maintenance, medical hold, or special promotion). The client will receive an instant in-app notification.
+                </p>
+
+                <form asp-action="ExtendSubscription" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="subscriptionId" value="@Model.SubscriptionId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Additional Days</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('additionalDaysInput').value = 7;">+7 Days</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('additionalDaysInput').value = 14;">+14 Days</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('additionalDaysInput').value = 30;">+30 Days</button>
+                        </div>
+                        <input type="number" id="additionalDaysInput" name="additionalDays" value="14" min="1" max="365" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Reason / Administrative Note</label>
+                        <input type="text" name="reason" class="form-control" placeholder="e.g. Complimentary gym maintenance extension" required minlength="3" maxlength="200" />
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-semibold">
+                        Confirm & Extend Subscription
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cancel Subscription -->
+        @if (Model.Status == HealthTrack.Models.Memberships.SubscriptionStatus.Active)
+        {
+            <div class="card dashboard-card border-0 shadow-sm border-start border-danger border-3">
+                <div class="card-body p-4">
+                    <h2 class="h6 fw-bold mb-2 text-danger">Cancel Subscription</h2>
+                    <p class="text-muted small mb-3">
+                        Terminate this subscription early. The member's status will be marked as Cancelled and they will be notified.
+                    </p>
+
+                    <form asp-action="CancelSubscription" method="post" onsubmit="return confirm('Are you sure you want to cancel this subscription? This cannot be undone.');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="subscriptionId" value="@Model.SubscriptionId" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Cancellation Reason</label>
+                            <input type="text" name="reason" class="form-control" placeholder="e.g. Member requested termination / Violation" required minlength="3" maxlength="200" />
+                        </div>
+
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            Cancel Member Subscription
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

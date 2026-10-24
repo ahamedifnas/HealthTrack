@@ -1,0 +1,63 @@
+@model HealthTrack.Models.Payments.CheckoutSummaryViewModel
+@{
+    ViewData["Title"] = "Connecting to PayHere...";
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-12 col-md-6 text-center">
+        <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Connecting...</span>
+        </div>
+        <h1 class="h4 mb-2">Connecting to PayHere Secure Gateway</h1>
+        <p class="text-muted">Please wait while we redirect you to the payment page. Do not refresh or close this window.</p>
+
+        <!-- Official PayHere Hosted Checkout Form -->
+        <form id="payhere-form" method="post" action="@Model.PayHereCheckoutUrl">
+            <input type="hidden" name="merchant_id" value="@Model.MerchantId" />
+            <input type="hidden" name="return_url" value="@Model.ReturnUrl" />
+            <input type="hidden" name="cancel_url" value="@Model.CancelUrl" />
+            <input type="hidden" name="notify_url" value="@Model.NotifyUrl" />
+            <input type="hidden" name="order_id" value="@Model.OrderId" />
+            <input type="hidden" name="items" value="@Model.PackageName" />
+            <input type="hidden" name="currency" value="@Model.Currency" />
+            <input type="hidden" name="amount" value="@Model.FormattedAmount" />
+            <input type="hidden" name="first_name" value="@Model.ClientName" />
+            <input type="hidden" name="last_name" value="Member" />
+            <input type="hidden" name="email" value="@Model.ClientEmail" />
+            <input type="hidden" name="phone" value="0771234567" />
+            <input type="hidden" name="address" value="HealthTrack Member Address" />
+            <input type="hidden" name="city" value="Colombo" />
+            <input type="hidden" name="country" value="Sri Lanka" />
+            <input type="hidden" name="hash" value="@Model.Hash" />
+
+            <noscript>
+                <div class="mt-4">
+                    <p class="text-muted small">JavaScript appears to be disabled in your browser. Click the button below to continue:</p>
+                    <button type="submit" class="btn btn-success px-4 py-2">Click Here to Pay with PayHere</button>
+                </div>
+            </noscript>
+        </form>
+
+        <div class="mt-4 d-none" id="fallback-button-container">
+            <p class="text-muted small">If you are not redirected automatically within 5 seconds:</p>
+            <button type="button" class="btn btn-outline-success" onclick="document.getElementById('payhere-form').submit();">
+                Proceed to PayHere →
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Submit automatically
+        var form = document.getElementById('payhere-form');
+        if (form) {
+            form.submit();
+        }
+        // Fallback display if redirect is delayed
+        setTimeout(function () {
+            var fallback = document.getElementById('fallback-button-container');
+            if (fallback) fallback.classList.remove('d-none');
+        }, 3000);
+    });
+</script>

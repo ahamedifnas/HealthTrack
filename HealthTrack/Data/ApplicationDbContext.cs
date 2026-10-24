@@ -1,5 +1,7 @@
 using HealthTrack.Models;
 using HealthTrack.Models.Appointments;
+using HealthTrack.Models.Memberships;
+using HealthTrack.Models.Payments;
 using HealthTrack.Models.Training;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<HealthMeasurement> HealthMeasurements => Set<HealthMeasurement>();
 
+    public DbSet<MembershipPackage> MembershipPackages => Set<MembershipPackage>();
+    public DbSet<ClientSubscription> ClientSubscriptions => Set<ClientSubscription>();
+    public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
+
     public DbSet<TrainerClient> TrainerClients => Set<TrainerClient>();
     public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
     public DbSet<WorkoutExercise> WorkoutExercises => Set<WorkoutExercise>();
@@ -23,6 +29,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<DietMeal> DietMeals => Set<DietMeal>();
     public DbSet<MealLog> MealLogs => Set<MealLog>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<TrainerAvailability> TrainerAvailabilities => Set<TrainerAvailability>();
+    public DbSet<TrainerAvailabilityBreak> TrainerAvailabilityBreaks => Set<TrainerAvailabilityBreak>();
+    public DbSet<TrainerUnavailability> TrainerUnavailabilities => Set<TrainerUnavailability>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -78,5 +87,42 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<DietMeal>().Property(x => x.Fat).HasPrecision(10, 2);
         builder.Entity<WorkoutLog>().HasIndex(x => new { x.ClientId, x.WorkoutDate });
         builder.Entity<MealLog>().HasIndex(x => new { x.ClientId, x.MealDate });
+
+        // Membership Packages & Subscriptions
+        builder.Entity<MembershipPackage>().Property(x => x.PriceLKR).HasPrecision(18, 2);
+
+        builder.Entity<PaymentTransaction>().Property(x => x.AmountLKR).HasPrecision(18, 2);
+        builder.Entity<PaymentTransaction>().HasIndex(x => x.OrderId).IsUnique();
+        builder.Entity<PaymentTransaction>().HasOne(x => x.Client).WithMany()
+            .HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<PaymentTransaction>().HasOne(x => x.MembershipPackage).WithMany(x => x.Transactions)
+            .HasForeignKey(x => x.MembershipPackageId).OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ClientSubscription>().Property(x => x.AmountPaidLKR).HasPrecision(18, 2);
+        builder.Entity<ClientSubscription>().HasOne(x => x.Client).WithMany()
+            .HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<ClientSubscription>().HasOne(x => x.MembershipPackage).WithMany(x => x.Subscriptions)
+            .HasForeignKey(x => x.MembershipPackageId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<ClientSubscription>().HasOne(x => x.PaymentTransaction).WithOne(x => x.Subscription)
+            .HasForeignKey<ClientSubscription>(x => x.PaymentTransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<ClientSubscription>().HasIndex(x => new { x.ClientId, x.Status, x.EndDate });
+
+        // Trainer Availability & Leave
+        builder.Entity<TrainerAvailability>().Property(x => x.StartTime).HasPrecision(0);
+        builder.Entity<TrainerAvailability>().Property(x => x.EndTime).HasPrecision(0);
+        builder.Entity<TrainerAvailability>().HasOne(x => x.Trainer).WithMany()
+            .HasForeignKey(x => x.TrainerId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<TrainerAvailability>().HasIndex(x => new { x.TrainerId, x.DayOfWeek, x.IsActive });
+
+        builder.Entity<TrainerAvailabilityBreak>().Property(x => x.BreakStartTime).HasPrecision(0);
+        builder.Entity<TrainerAvailabilityBreak>().Property(x => x.BreakEndTime).HasPrecision(0);
+        builder.Entity<TrainerAvailabilityBreak>().HasOne(x => x.TrainerAvailability).WithMany(x => x.Breaks)
+            .HasForeignKey(x => x.TrainerAvailabilityId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TrainerUnavailability>().Property(x => x.StartTime).HasPrecision(0);
+        builder.Entity<TrainerUnavailability>().Property(x => x.EndTime).HasPrecision(0);
+        builder.Entity<TrainerUnavailability>().HasOne(x => x.Trainer).WithMany()
+            .HasForeignKey(x => x.TrainerId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<TrainerUnavailability>().HasIndex(x => new { x.TrainerId, x.StartDate, x.EndDate, x.Status });
     }
 }

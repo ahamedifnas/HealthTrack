@@ -1,0 +1,93 @@
+@model HealthTrack.Models.Memberships.MembershipCatalogViewModel
+@{
+    ViewData["Title"] = "Membership Packages";
+}
+
+<div class="text-center mb-5">
+    <h1 class="display-6 fw-bold mb-2">Find the Plan That Fits Your Health Journey</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 650px;">
+        Transparent, flexible membership packages with certified trainers, tailored workout & diet regimens, and secure online payments.
+    </p>
+
+    @if (Model.ActiveSubscription != null)
+    {
+        <div class="alert alert-success d-inline-block text-start mt-2 px-4 py-3" role="status">
+            <div class="d-flex align-items-center gap-3">
+                <span class="fs-4">✓</span>
+                <div>
+                    <strong>Active Membership: @Model.ActiveSubscription.PackageNameSnapshot</strong>
+                    <div class="small">Valid through <strong>@Model.ActiveSubscription.EndDate.ToString("dd MMMM yyyy")</strong>. You can renew or upgrade anytime.</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.Packages.Count == 0)
+{
+    <div class="alert alert-warning text-center">No membership packages are currently active. Please check back later.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4 align-items-stretch">
+        @foreach (var pkg in Model.Packages)
+        {
+            var isCurrent = pkg.IsCurrentSubscription;
+            var isPro = pkg.Name.Contains("Pro", StringComparison.OrdinalIgnoreCase);
+
+            <div class="col">
+                <div class="card h-100 dashboard-card border-0 shadow-sm @(isPro ? "border border-2 border-success" : "") @(isCurrent ? "bg-light" : "") position-relative">
+                    @if (isCurrent)
+                    {
+                        <span class="badge bg-success position-absolute top-0 start-50 translate-middle px-3 py-2 text-uppercase shadow-sm">Your Current Plan</span>
+                    }
+                    else if (isPro)
+                    {
+                        <span class="badge bg-primary position-absolute top-0 start-50 translate-middle px-3 py-2 text-uppercase shadow-sm">Most Popular</span>
+                    }
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h3 class="h4 card-title fw-bold mb-2 mt-2">@pkg.Name</h3>
+                        <p class="text-muted small mb-4" style="min-height: 48px;">@pkg.Description</p>
+
+                        <div class="my-3 pb-3 border-bottom">
+                            <span class="display-6 fw-bold text-success">LKR @pkg.PriceLKR.ToString("N0")</span>
+                            <span class="text-muted small"> / @pkg.DurationDays days</span>
+                        </div>
+
+                        <ul class="list-unstyled mb-4 flex-grow-1">
+                            @foreach (var benefit in pkg.Benefits)
+                            {
+                                <li class="d-flex align-items-start mb-2">
+                                    <span class="text-success me-2 fw-bold">✓</span>
+                                    <span class="small">@benefit</span>
+                                </li>
+                            }
+                        </ul>
+
+                        <div class="mt-auto">
+                            @if (!Model.IsAuthenticated)
+                            {
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Checkout", "Payments", new { packageId = pkg.Id })" class="btn btn-outline-success w-100 py-2">
+                                    Sign In to Subscribe
+                                </a>
+                            }
+                            else if (Model.IsClient)
+                            {
+                                <a asp-controller="Payments" asp-action="Checkout" asp-route-packageId="@pkg.Id" class="btn @(isCurrent ? "btn-outline-success" : "btn-success") w-100 py-2 fw-semibold">
+                                    @(isCurrent ? "Extend / Renew Plan" : "Choose & Checkout")
+                                </a>
+                            }
+                            else if (Model.IsAdmin)
+                            {
+                                <a asp-action="Edit" asp-route-id="@pkg.Id" class="btn btn-outline-primary w-100 py-2">
+                                    Edit Package (Admin)
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

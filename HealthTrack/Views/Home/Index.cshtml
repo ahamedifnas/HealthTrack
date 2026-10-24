@@ -1,8 +1,72 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Welcome to HealthTrack";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="py-5 text-center">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-4 rounded-pill border border-secondary" style="background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.3) !important;">
+        <span class="badge-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #A855F7; box-shadow: 0 0 10px #A855F7;"></span>
+        <span style="font-size: 0.8rem; font-weight: 600; color: #C084FC;">Next-Generation Fitness &amp; Health Intelligence</span>
+    </div>
+
+    <h1 class="display-3 fw-bolder mb-3" style="letter-spacing: -0.04em; color: #F8FAFC;">
+        Elevate Your Fitness with <span style="background: linear-gradient(135deg, #A855F7, #10B981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">HealthTrack</span>
+    </h1>
+    <p class="lead text-secondary mx-auto mb-5" style="max-width: 680px; font-size: 1.15rem;">
+        Unified health measurements, tailored workout regimens, dietary meal tracking, and professional trainer appointment scheduling in one dark SaaS dashboard.
+    </p>
+
+    <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-neon-purple px-4 py-3 fs-6">
+                Go to Dashboard &rarr;
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Register" class="btn btn-neon-purple px-4 py-3 fs-6">
+                Create Free Account
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-dark-outline px-4 py-3 fs-6">
+                Sign In
+            </a>
+            <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-neon-outline-green px-4 py-3 fs-6">
+                View Membership Plans
+            </a>
+        }
+    </div>
+
+    <!-- FEATURE HIGHLIGHTS -->
+    <div class="row g-4 mt-4 text-start">
+        <div class="col-12 col-md-4">
+            <div class="ht-stat-card ht-stat-purple h-100">
+                <div class="ht-stat-top">
+                    <span class="ht-stat-label">Personalized Coaching</span>
+                    <div class="ht-stat-icon-box">🏋️</div>
+                </div>
+                <h3 class="h5 fw-bold text-white mb-2">Dedicated Trainers</h3>
+                <p class="text-secondary small mb-0">1-on-1 assignments with certified coaches, custom workout routines, and direct appointment bookings.</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="ht-stat-card ht-stat-green h-100">
+                <div class="ht-stat-top">
+                    <span class="ht-stat-label">Smart Nutrition</span>
+                    <div class="ht-stat-icon-box">🥗</div>
+                </div>
+                <h3 class="h5 fw-bold text-white mb-2">Diet &amp; Calorie Tracking</h3>
+                <p class="text-secondary small mb-0">Structured meal plans crafted by fitness professionals to match your target calorie and weight goals.</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="ht-stat-card ht-stat-purple h-100">
+                <div class="ht-stat-top">
+                    <span class="ht-stat-label">Body Analytics</span>
+                    <div class="ht-stat-icon-box">📊</div>
+                </div>
+                <h3 class="h5 fw-bold text-white mb-2">Metrics &amp; Progress</h3>
+                <p class="text-secondary small mb-0">Track weight, BMI trends, workout logs, and historical analytics with comprehensive progress curves.</p>
+            </div>
+        </div>
+    </div>
 </div>

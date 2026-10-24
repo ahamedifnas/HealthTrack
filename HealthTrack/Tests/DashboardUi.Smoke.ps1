@@ -1,9 +1,12 @@
-﻿param([string]$BaseUrl = 'http://localhost:5092')
+param([string]$BaseUrl = 'http://localhost:5092')
 # SQL Server integration checks. All temporary accounts and records are removed in finally.
 $ErrorActionPreference = 'Stop'
 $prefix = 'dashboard-ui-' + [Guid]::NewGuid().ToString('N')
 $password = 'Ht6!' + [Guid]::NewGuid().ToString('N')
-$database = New-Object System.Data.SqlClient.SqlConnection('Server=(localdb)\MSSQLLocalDB;Database=HealthTrackDB;Integrated Security=True;TrustServerCertificate=True')
+$settings = Get-Content -Raw "$PSScriptRoot\..\appsettings.json" | ConvertFrom-Json
+$connection = $settings.ConnectionStrings.DefaultConnection
+if ($env:ConnectionStrings__DefaultConnection) { $connection = $env:ConnectionStrings__DefaultConnection }
+$database = New-Object System.Data.SqlClient.SqlConnection($connection)
 $database.Open()
 $zoneId = (Get-Content -Raw "$PSScriptRoot/../appsettings.json" | ConvertFrom-Json).Appointments.TimeZoneId
 if ($zoneId -eq 'Asia/Colombo') { $zoneId = 'Sri Lanka Standard Time' }
@@ -44,11 +47,13 @@ try {
         $null = Submit $session '/Account/Register' '/Account/Register' @{FullName="$name $prefix";Email=$email;Password=$password;ConfirmPassword=$password}
         $id = Query 'SELECT Id FROM AspNetUsers WHERE Email=@email' @{email=$email}
         if (-not $id) { throw 'Registration failed' }
-        $accounts[$name] = @{Id=$id;Session=$session}
+        $null = Query 'UPDATE AspNetUsers SET EmailConfirmed=1, RequiresRegistrationEmailVerification=0 WHERE Id=@id' @{id=$id}
         if ($name -in @('Trainer','OtherTrainer','Admin')) {
             $role = if ($name -eq 'Admin') { 'Admin' } else { 'Trainer' }
             $null = Query 'DELETE FROM AspNetUserRoles WHERE UserId=@id; INSERT INTO AspNetUserRoles SELECT @id,Id FROM AspNetRoles WHERE Name=@role' @{id=$id;role=$role}
         }
+        $null = Submit $session '/Account/Login' '/Account/Login' @{Email=$email;Password=$password;RememberMe=$false}
+        $accounts[$name] = @{Id=$id;Session=$session}
     }
     $client = $accounts.Client; $trainer = $accounts.Trainer; $admin = $accounts.Admin; $other = $accounts.Other
     $null = Submit $admin.Session '/Dashboard/Admin' '/AdminAssignments/Assign' @{'Assignment.ClientId'=$client.Id;'Assignment.TrainerId'=$trainer.Id}

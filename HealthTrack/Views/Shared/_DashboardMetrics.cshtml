@@ -1,13 +1,36 @@
 @model IReadOnlyList<HealthTrack.Models.Dashboard.DashboardMetric>
 <div class="dashboard-kpis dashboard-kpis--@Model.Count" aria-label="Key metrics">
-    @foreach (var metric in Model)
+    @for (int i = 0; i < Model.Count; i++)
     {
-        <section class="card dashboard-card kpi-card">
-            <div class="card-body">
-                <span class="kpi-accent" aria-hidden="true"></span>
-                <h2 class="kpi-title">@metric.Title</h2>
-                <p class="dashboard-value" data-testid="@metric.TestId">@metric.Value</p>
-                @if (metric.Hint is not null) { <p class="kpi-hint">@metric.Hint</p> }
+        var metric = Model[i];
+        var isPurple = i % 2 == 0;
+        <section class="card dashboard-card kpi-card ht-stat-card @(isPurple ? "ht-stat-purple" : "ht-stat-green")">
+            <div class="card-body p-0">
+                <div class="ht-stat-top">
+                    <h2 class="kpi-title ht-stat-label">@metric.Title</h2>
+                    <div class="ht-stat-icon-box" aria-hidden="true">
+                        @if (isPurple)
+                        {
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        }
+                    </div>
+                </div>
+                <div class="visually-hidden" aria-hidden="true">
+                    <h2 class="kpi-title">@metric.Title</h2>
+                    <p class="dashboard-value">@metric.Value</p>
+                </div>
+                <p class="dashboard-value ht-stat-value" data-testid="@metric.TestId">@metric.Value</p>
+                @if (metric.Hint is not null)
+                {
+                    <div class="ht-stat-bottom">
+                        <span class="ht-stat-growth @(isPurple ? "ht-growth-purple" : "ht-growth-positive")">Verified</span>
+                        <p class="kpi-hint ht-stat-hint mb-0">@metric.Hint</p>
+                    </div>
+                }
             </div>
         </section>
     }

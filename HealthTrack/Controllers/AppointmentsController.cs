@@ -3,6 +3,7 @@ using HealthTrack.Data;
 using HealthTrack.Models;
 using HealthTrack.Models.Appointments;
 using HealthTrack.Services;
+using HealthTrack.Services.Appointments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,9 +14,56 @@ namespace HealthTrack.Controllers;
 
 [Authorize(Roles = "Admin,Trainer,Client,HealthcareProfessional")]
 [AutoValidateAntiforgeryToken]
-public class AppointmentsController(ApplicationDbContext database, AppointmentClock clock, NotificationService notifications) : Controller
+public class AppointmentsController(
+    ApplicationDbContext database,
+    AppointmentClock clock,
+    NotificationService notifications,
+    ITrainerAvailabilityService availabilityService) : Controller
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAvailableSlots(string providerId, string date)
+    {
+        if (string.IsNullOrWhiteSpace(providerId) || !DateOnly.TryParse(date, out var appointmentDate))
+        {
+            return Json(new AvailableSlotsResponseModel { Success = false, Message = "Invalid provider ID or date format." });
+        }
+
+        var isTrainer = await AvailableTrainers().AnyAsync(t => t.Id == providerId);
+        if (isTrainer)
+        {
+            var trainer = await database.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == providerId);
+            var slots = await availabilityService.GetAvailableSlotsAsync(providerId, appointmentDate);
+            return Json(new AvailableSlotsResponseModel
+            {
+                Success = true,
+                IsTrainer = true,
+                ProviderId = providerId,
+                ProviderName = trainer?.FullName ?? "Trainer",
+                Date = appointmentDate.ToString("yyyy-MM-dd"),
+                Slots = slots
+            });
+        }
+
+        var isHcp = await AvailableHealthcareProfessionals().AnyAsync(h => h.UserId == providerId);
+        if (isHcp)
+        {
+            var hcp = await database.HealthcareProfessionals.Include(h => h.User).AsNoTracking().FirstOrDefaultAsync(h => h.UserId == providerId);
+            return Json(new AvailableSlotsResponseModel
+            {
+                Success = true,
+                IsTrainer = false,
+                ProviderId = providerId,
+                ProviderName = hcp?.User.FullName ?? "Healthcare Professional",
+                Date = appointmentDate.ToString("yyyy-MM-dd"),
+                Slots = []
+            });
+        }
+
+        return Json(new AvailableSlotsResponseModel { Success = false, Message = "Provider not found or inactive." });
+    }
 
     private IQueryable<Appointment> VisibleAppointments()
     {
@@ -77,6 +125,20 @@ public class AppointmentsController(ApplicationDbContext database, AppointmentCl
     {
         ValidateFutureSchedule(model);
         await ValidateProvider(model);
+
+        if (model.TrainerId is not null && model.AppointmentDate.HasValue && model.AppointmentTime.HasValue)
+        {
+            var hasConfiguredSchedule = await database.TrainerAvailabilities.AnyAsync(a => a.TrainerId == model.TrainerId && a.IsActive);
+            if (hasConfiguredSchedule)
+            {
+                var isSlotAvailable = await availabilityService.IsSlotAvailableAsync(model.TrainerId, model.AppointmentDate.Value, model.AppointmentTime.Value);
+                if (!isSlotAvailable)
+                {
+                    ModelState.AddModelError(nameof(model.AppointmentTime), "The selected time slot is not available or falls outside trainer working hours. Please choose an available slot.");
+                }
+            }
+        }
+
         if (ModelState.IsValid)
         {
             var appointment = new Appointment
@@ -226,6 +288,20 @@ public class AppointmentsController(ApplicationDbContext database, AppointmentCl
         if (model.TrainerId != appointment.TrainerId || model.HealthcareProfessionalId != appointment.HealthcareProfessionalId) return BadRequest();
         await ValidateProvider(model);
         ValidateFutureSchedule(model);
+
+        if (model.TrainerId is not null && model.AppointmentDate.HasValue && model.AppointmentTime.HasValue)
+        {
+            var hasConfiguredSchedule = await database.TrainerAvailabilities.AnyAsync(a => a.TrainerId == model.TrainerId && a.IsActive);
+            if (hasConfiguredSchedule)
+            {
+                var isSlotAvailable = await availabilityService.IsSlotAvailableAsync(model.TrainerId, model.AppointmentDate.Value, model.AppointmentTime.Value);
+                if (!isSlotAvailable)
+                {
+                    ModelState.AddModelError(nameof(model.AppointmentTime), "The selected time slot is not available or falls outside trainer working hours. Please choose an available slot.");
+                }
+            }
+        }
+
         byte[] version;
         try { version = Convert.FromBase64String(model.RowVersion ?? ""); }
         catch (FormatException) { return BadRequest(); }

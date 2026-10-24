@@ -1,0 +1,171 @@
+@model HealthTrack.Models.Appointments.TrainerLeaveForm
+@{
+    ViewData["Title"] = "Add Trainer Time Off / Leave";
+}
+
+<section class="dashboard-heading mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="h2 mb-1"><i class="bi bi-calendar-x text-danger me-2"></i>Add Time Off / Leave</h1>
+            <p class="text-muted mb-0">Block out vacation, sick leave, or unavailable hours for @Model.TrainerName.</p>
+        </div>
+        <a asp-action="Leave" asp-route-trainerId="@Model.TrainerId" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Leave List
+        </a>
+    </div>
+</section>
+
+<div class="card dashboard-card border-0 shadow-sm max-w-750">
+    <div class="card-body p-4">
+        <form asp-action="CreateLeave" method="post" id="leaveForm">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger shadow-sm mb-4" role="alert"></div>
+            }
+
+            @if (Model.Trainers.Count > 0)
+            {
+                <div class="mb-3">
+                    <label asp-for="TrainerId" class="form-label fw-bold">Trainer</label>
+                    <select asp-for="TrainerId" asp-items="Model.Trainers" class="form-select" id="trainerSelect"></select>
+                    <span asp-validation-for="TrainerId" class="text-danger small"></span>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="TrainerId" id="trainerSelect" value="@Model.TrainerId" />
+            }
+
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <label asp-for="StartDate" class="form-label fw-bold">Start Date</label>
+                    <input asp-for="StartDate" class="form-control" type="date" id="startDateInput" />
+                    <span asp-validation-for="StartDate" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label asp-for="EndDate" class="form-label fw-bold">End Date</label>
+                    <input asp-for="EndDate" class="form-control" type="date" id="endDateInput" />
+                    <span asp-validation-for="EndDate" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" asp-for="IsFullDay" id="isFullDaySwitch" checked>
+                <label class="form-check-label fw-semibold" for="isFullDaySwitch">Full-Day Leave (Blocks all working hours)</label>
+            </div>
+
+            <div class="row g-3 mb-4 p-3 bg-light rounded border" id="partialTimeGroup" style="display: none;">
+                <div class="col-12 col-md-6">
+                    <label asp-for="StartTime" class="form-label fw-semibold">Leave Start Time</label>
+                    <input asp-for="StartTime" asp-format="{0:HH:mm}" class="form-control" type="time" id="startTimeInput" />
+                    <span asp-validation-for="StartTime" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label asp-for="EndTime" class="form-label fw-semibold">Leave End Time</label>
+                    <input asp-for="EndTime" asp-format="{0:HH:mm}" class="form-control" type="time" id="endTimeInput" />
+                    <span asp-validation-for="EndTime" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Reason" class="form-label fw-bold">Reason / Notes</label>
+                <textarea asp-for="Reason" class="form-control" rows="3" maxlength="500" placeholder="e.g. Annual Vacation, Medical Leave, Personal Emergency..."></textarea>
+                <span asp-validation-for="Reason" class="text-danger small"></span>
+                <div class="form-text">Clients whose appointments conflict with this leave will see this reason in their cancellation notification.</div>
+            </div>
+
+            <!-- Affected Appointments Warning Container -->
+            <div id="affectedAlert" class="alert alert-warning shadow-sm mb-4" style="display: none;">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>
+                    <strong class="h6 mb-0" id="affectedCountText">0 existing appointments will be affected</strong>
+                </div>
+                <p class="small mb-2">The following existing bookings fall within this leave window and will be automatically marked as <strong>Cancelled</strong> with an in-app notice dispatched to the client:</p>
+                <ul id="affectedList" class="small mb-0 ps-3"></ul>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger px-4" id="submitBtn">
+                    <i class="bi bi-calendar-x me-1"></i> Register Time Off
+                </button>
+                <a asp-action="Leave" asp-route-trainerId="@Model.TrainerId" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const isFullDaySwitch = document.getElementById("isFullDaySwitch");
+    const partialTimeGroup = document.getElementById("partialTimeGroup");
+    const startDateInput = document.getElementById("startDateInput");
+    const endDateInput = document.getElementById("endDateInput");
+    const startTimeInput = document.getElementById("startTimeInput");
+    const endTimeInput = document.getElementById("endTimeInput");
+    const trainerSelect = document.getElementById("trainerSelect");
+    const affectedAlert = document.getElementById("affectedAlert");
+    const affectedCountText = document.getElementById("affectedCountText");
+    const affectedList = document.getElementById("affectedList");
+
+    function togglePartialTimes() {
+        if (isFullDaySwitch.checked) {
+            partialTimeGroup.style.display = "none";
+        } else {
+            partialTimeGroup.style.display = "flex";
+        }
+        checkAffected();
+    }
+
+    isFullDaySwitch.addEventListener("change", togglePartialTimes);
+
+    [startDateInput, endDateInput, startTimeInput, endTimeInput].forEach(el => {
+        if (el) el.addEventListener("change", checkAffected);
+    });
+
+    if (trainerSelect) {
+        trainerSelect.addEventListener("change", checkAffected);
+    }
+
+    function checkAffected() {
+        const trainerId = trainerSelect ? trainerSelect.value : "";
+        const sDate = startDateInput ? startDateInput.value : "";
+        const eDate = endDateInput ? endDateInput.value : "";
+        const isFullDay = isFullDaySwitch ? isFullDaySwitch.checked : true;
+        const sTime = startTimeInput ? startTimeInput.value : "";
+        const eTime = endTimeInput ? endTimeInput.value : "";
+
+        if (!trainerId || !sDate || !eDate) {
+            affectedAlert.style.display = "none";
+            return;
+        }
+
+        const url = `/TrainerAvailability/CheckAffectedAppointments?trainerId=${encodeURIComponent(trainerId)}&startDate=${encodeURIComponent(sDate)}&endDate=${encodeURIComponent(eDate)}&isFullDay=${isFullDay}&startTime=${encodeURIComponent(sTime)}&endTime=${encodeURIComponent(eTime)}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.count > 0) {
+                    affectedAlert.style.display = "block";
+                    affectedCountText.textContent = `${data.count} existing booking(s) will be affected`;
+                    affectedList.innerHTML = "";
+                    data.appointments.forEach(a => {
+                        const li = document.createElement("li");
+                        li.textContent = `${a.clientName} - ${a.date} at ${a.time} (${a.reason})`;
+                        affectedList.appendChild(li);
+                    });
+                } else {
+                    affectedAlert.style.display = "none";
+                }
+            })
+            .catch(() => {
+                affectedAlert.style.display = "none";
+            });
+    }
+
+    togglePartialTimes();
+});
+</script>
+}

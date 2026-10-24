@@ -1,0 +1,116 @@
+@model HealthTrack.Models.Payments.PaymentReceiptViewModel
+@{
+    ViewData["Title"] = "Receipt - " + Model.OrderId;
+}
+
+@if (Model.IsDemo) { <div class="alert alert-warning">Demo Payment – No Real Money</div> }
+<div class="row justify-content-center py-3">
+    <div class="col-12 col-md-10 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
+            <div class="d-flex gap-2">
+                <a asp-action="Membership" class="btn btn-outline-secondary">← My Membership</a>
+                <a asp-action="History" class="btn btn-outline-secondary">Payment History</a>
+            </div>
+            <button onclick="window.print();" class="btn btn-success fw-semibold">
+                🖨️ Print / Save as PDF
+            </button>
+        </div>
+
+        <div class="card dashboard-card p-4 p-md-5 border-0 shadow-sm" id="printable-receipt">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+                <div>
+                    <h1 class="h3 fw-bold text-success mb-1">+ HealthTrack Gym & Fitness</h1>
+                    <p class="text-muted small mb-0">HealthTrack Management Services (Pvt) Ltd</p>
+                    <p class="text-muted small mb-0">124 Galle Road, Colombo 03, Sri Lanka</p>
+                    <p class="text-muted small mb-0">Business Reg: <strong>PV 00249581</strong> | Hotline: +94 11 234 5678</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-success px-3 py-2 text-uppercase mb-2">Official Receipt</span>
+                    <div class="fw-bold fs-6">Receipt # @Model.OrderId</div>
+                    <div class="text-muted small">Date: @(Model.PaidAt?.ToString("dd MMM yyyy HH:mm") ?? Model.CreatedAt.ToString("dd MMM yyyy HH:mm"))</div>
+                </div>
+            </div>
+
+            <!-- Customer & Gateway Info -->
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6">
+                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Billed To (Member)</span>
+                    <strong class="d-block fs-6">@Model.ClientName</strong>
+                    <span class="text-muted small">@Model.ClientEmail</span>
+                </div>
+                <div class="col-sm-6 text-sm-end">
+                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Payment Method & Reference</span>
+                    <strong class="d-block">@(Model.PaymentMethod ?? "PayHere Sandbox Checkout")</strong>
+                    @if (!string.IsNullOrEmpty(Model.PayHerePaymentId))
+                    {
+                        <span class="text-muted small d-block">Gateway Ref: @Model.PayHerePaymentId</span>
+                    }
+                    <span class="badge bg-success mt-1">Status: Paid (Verified)</span>
+                </div>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="table-responsive mb-4">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Description</th>
+                            <th scope="col" class="text-center">Duration</th>
+                            <th scope="col" class="text-end">Amount (LKR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>@Model.PackageName Membership Subscription</strong>
+                                <div class="text-muted small">
+                                    @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+                                    {
+                                        <span>Coverage: <strong>@Model.StartDate.Value.ToString("dd MMM yyyy")</strong> to <strong>@Model.EndDate.Value.ToString("dd MMM yyyy")</strong></span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="text-center">@Model.DurationDays Days</td>
+                            <td class="text-end fw-bold">LKR @Model.AmountLKR.ToString("N2")</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="2" class="text-end pt-3">Total Paid (LKR):</th>
+                            <th class="text-end pt-3 text-success fs-5">LKR @Model.AmountLKR.ToString("N2")</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Security & Verification Seal -->
+            <div class="p-3 bg-light rounded text-center small text-muted mb-4 border">
+                <div class="fw-semibold text-success mb-1">✓ Server-Verified Electronic Transaction</div>
+                <div>@(Model.IsDemo ? "Simulated payment only. This is not evidence of real settlement." : "This document confirms verified settlement through the PayHere Payment Aggregator. Package pricing, tier duration, and timestamps are immutably archived.")</div>
+            </div>
+
+            <div class="text-center text-muted small border-top pt-3">
+                Thank you for choosing HealthTrack! For membership assistance, please contact support at <code>support@healthtrack.com</code>.
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        header, footer, .navbar, .skip-link, .d-print-none, .btn {
+            display: none !important;
+        }
+        body {
+            background-color: #fff !important;
+            padding: 0 !important;
+        }
+        #printable-receipt {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            margin: 0 !important;
+            padding: 20px !important;
+        }
+    }
+</style>

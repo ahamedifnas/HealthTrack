@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HealthTrack.Models;
 
-public enum NotificationType { Appointment = 1, Workout = 2, Diet = 3 }
+public enum NotificationType { Appointment = 1, Workout = 2, Diet = 3, Membership = 4 }
 
 public class Notification
 {

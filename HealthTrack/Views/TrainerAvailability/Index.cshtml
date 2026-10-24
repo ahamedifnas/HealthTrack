@@ -1,0 +1,264 @@
+@model HealthTrack.Models.Appointments.TrainerScheduleOverviewViewModel
+@{
+    ViewData["Title"] = Model.IsAdmin ? $"Trainer Availability - {Model.TrainerName}" : "My Availability & Schedule";
+}
+
+<section class="dashboard-heading mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="bi bi-calendar3-range text-success me-2"></i>
+                @(Model.IsAdmin ? $"Trainer Schedule: {Model.TrainerName}" : "My Working Hours & Availability")
+            </h1>
+            <p class="text-muted mb-0">Configure recurring weekly availability, slot duration, and lunch/rest breaks for client appointments.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Create" asp-route-trainerId="@(Model.IsAdmin ? Model.TrainerId : null)" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Add Working Hours
+            </a>
+            <a asp-action="Leave" asp-route-trainerId="@(Model.IsAdmin ? Model.TrainerId : null)" class="btn btn-outline-danger">
+                <i class="bi bi-calendar-x me-1"></i> Manage Time Off
+            </a>
+            <a asp-controller="Appointments" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-check me-1"></i> Appointments
+            </a>
+        </div>
+    </div>
+</section>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @success
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Info"] is string info)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i> @info
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model.IsAdmin && Model.AvailableTrainers.Count > 0)
+{
+    <div class="card bg-light border-0 shadow-sm mb-4">
+        <div class="card-body py-2 px-3">
+            <form method="get" asp-action="Index" class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <label class="col-form-label fw-bold small text-muted"><i class="bi bi-person-badge me-1"></i> Select Trainer:</label>
+                </div>
+                <div class="col-auto">
+                    <select name="trainerId" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @foreach (var item in Model.AvailableTrainers)
+                        {
+                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                        }
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Weekly Recurring Working Hours -->
+    <div class="col-12 col-xl-8">
+        <div class="card dashboard-card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-0">
+                <h5 class="h6 fw-bold mb-0"><i class="bi bi-clock-history text-success me-2"></i> Weekly Recurring Working Schedule</h5>
+                @if (Model.WeeklySchedules.Count == 0)
+                {
+                    <form asp-action="ApplyStandardSchedule" method="post" class="d-inline">
+                        <input type="hidden" name="trainerId" value="@(Model.IsAdmin ? Model.TrainerId : null)" />
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-magic me-1"></i> Apply Standard Weekdays (Mon-Fri 9AM-5PM)
+                        </button>
+                    </form>
+                }
+            </div>
+
+            <div class="card-body">
+                @if (Model.WeeklySchedules.Count == 0)
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x display-4 text-muted mb-3 d-block"></i>
+                        <h6 class="fw-semibold">No working hours configured yet</h6>
+                        <p class="text-muted small mb-3">Clients cannot book appointment slots until weekly availability is configured.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <form asp-action="ApplyStandardSchedule" method="post">
+                                <input type="hidden" name="trainerId" value="@(Model.IsAdmin ? Model.TrainerId : null)" />
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-magic me-1"></i> Apply Standard Mon-Fri (9:00 AM - 5:00 PM)
+                                </button>
+                            </form>
+                            <a asp-action="Create" asp-route-trainerId="@(Model.IsAdmin ? Model.TrainerId : null)" class="btn btn-outline-primary">
+                                Custom Schedule
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Day of Week</th>
+                                    <th>Working Hours</th>
+                                    <th>Slot Size</th>
+                                    <th>Breaks / Rest</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var schedule in Model.WeeklySchedules)
+                                {
+                                    <tr class="@(!schedule.IsActive ? "opacity-75 bg-light" : "")">
+                                        <td>
+                                            <strong class="text-dark">@schedule.DayOfWeek</strong>
+                                            @if (schedule.EffectiveStartDate.HasValue || schedule.EffectiveEndDate.HasValue)
+                                            {
+                                                <div class="small text-muted">
+                                                    @(schedule.EffectiveStartDate?.ToString("yyyy-MM-dd") ?? "Any") &rarr; @(schedule.EffectiveEndDate?.ToString("yyyy-MM-dd") ?? "Ongoing")
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="bi bi-clock me-1 text-primary"></i>
+                                                @schedule.StartTime.ToString("hh:mm tt") - @schedule.EndTime.ToString("hh:mm tt")
+                                            </span>
+                                        </td>
+                                        <td>@schedule.SlotDurationMinutes mins</td>
+                                        <td>
+                                            @if (schedule.Breaks.Count == 0)
+                                            {
+                                                <span class="text-muted small">None</span>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var brk in schedule.Breaks)
+                                                {
+                                                    <span class="badge bg-warning text-dark me-1" title="@brk.Description">
+                                                        <i class="bi bi-cup-hot me-1"></i> @brk.BreakStartTime.ToString("hh:mm tt") - @brk.BreakEndTime.ToString("hh:mm tt")
+                                                    </span>
+                                                }
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (schedule.IsActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a asp-action="Edit" asp-route-id="@schedule.Id" class="btn btn-outline-primary" title="Edit Schedule">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form asp-action="ToggleStatus" asp-route-id="@schedule.Id" method="post" class="d-inline">
+                                                    <button type="submit" class="btn @(schedule.IsActive ? "btn-outline-warning" : "btn-outline-success")" title="@(schedule.IsActive ? "Deactivate" : "Activate")">
+                                                        <i class="bi @(schedule.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                                    </button>
+                                                </form>
+                                                <form asp-action="Delete" asp-route-id="@schedule.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this schedule window?');">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Upcoming Leaves & Bookings -->
+    <div class="col-12 col-xl-4">
+        <!-- Upcoming Leaves Card -->
+        <div class="card dashboard-card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-0">
+                <h5 class="h6 fw-bold mb-0"><i class="bi bi-airplane text-danger me-2"></i> Upcoming Time Off</h5>
+                <a asp-action="CreateLeave" asp-route-trainerId="@(Model.IsAdmin ? Model.TrainerId : null)" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-plus me-1"></i> Add Leave
+                </a>
+            </div>
+            <div class="card-body">
+                @if (Model.UpcomingLeaves.Count == 0)
+                {
+                    <p class="text-muted small mb-0">No upcoming leave scheduled. Working hours apply as normal.</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var leave in Model.UpcomingLeaves)
+                        {
+                            <li class="list-group-item px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong class="d-block small">@leave.Reason</strong>
+                                        <span class="small text-muted">
+                                            @leave.StartDate.ToString("MMM dd, yyyy")
+                                            @if (leave.EndDate != leave.StartDate)
+                                            {
+                                                <span> - @leave.EndDate.ToString("MMM dd, yyyy")</span>
+                                            }
+                                        </span>
+                                    </div>
+                                    <span class="badge @(leave.Status == HealthTrack.Models.Appointments.TrainerLeaveStatus.Active ? "bg-danger" : "bg-secondary")">
+                                        @(leave.IsFullDay ? "Full Day" : $"{leave.StartTime:HH:mm}-{leave.EndTime:HH:mm}")
+                                    </span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments Preview -->
+        <div class="card dashboard-card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-0">
+                <h5 class="h6 fw-bold mb-0"><i class="bi bi-calendar-check text-success me-2"></i> Upcoming Bookings</h5>
+                <a asp-controller="Appointments" asp-action="Index" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="card-body">
+                @if (Model.UpcomingAppointments.Count == 0)
+                {
+                    <p class="text-muted small mb-0">No upcoming appointments currently booked.</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var app in Model.UpcomingAppointments)
+                        {
+                            <li class="list-group-item px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="d-block small">@app.Client?.FullName</strong>
+                                        <span class="small text-muted">@app.AppointmentDate.ToString("yyyy-MM-dd") at @app.AppointmentTime.ToString("hh:mm tt")</span>
+                                    </div>
+                                    <span class="badge @(app.Status == HealthTrack.Models.Appointments.AppointmentStatus.Approved ? "bg-success" : "bg-warning text-dark")">
+                                        @app.Status
+                                    </span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

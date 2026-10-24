@@ -2,6 +2,82 @@
 @{ ViewData["Title"] = "Client Dashboard"; }
 <partial name="_DashboardHeader" model="Model.Header" />
 <partial name="_DashboardMetrics" model="Model.Metrics" />
+
+<!-- Membership Status Banner -->
+<section class="mb-4" aria-label="Membership Status">
+    @if (Model.ActiveSubscription != null)
+    {
+        <div class="card dashboard-card border-0 shadow-sm border-start border-4 @(Model.HasExpiringSubscription ? "border-warning bg-warning bg-opacity-10" : "border-success") p-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-3">@(Model.HasExpiringSubscription ? "⚠️" : "🏅")</span>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <strong>@Model.ActiveSubscription.PackageNameSnapshot</strong>
+                            <span class="badge @(Model.HasExpiringSubscription ? "bg-warning text-dark" : "bg-success")">
+                                @(Model.HasExpiringSubscription ? $"Expiring Soon ({Model.SubscriptionDaysRemaining}d left)" : "Active Member")
+                            </span>
+                        </div>
+                        <div class="small text-muted">
+                            Valid through <strong>@Model.ActiveSubscription.EndDate.ToString("dd MMMM yyyy")</strong>
+                            @if (Model.SubscriptionDaysRemaining.HasValue)
+                            {
+                                <span> · @(Model.SubscriptionDaysRemaining == 0 ? "Expires today" : $"{Model.SubscriptionDaysRemaining} days remaining")</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Payments" asp-action="Membership" class="btn btn-sm btn-outline-success">
+                        My Membership Hub
+                    </a>
+                    <a asp-controller="Payments" asp-action="Renew" asp-route-packageId="@Model.ActiveSubscription.MembershipPackageId" class="btn btn-sm btn-success">
+                        Renew / Extend
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.HasExpiredSubscription)
+    {
+        <div class="card dashboard-card border-0 shadow-sm border-start border-4 border-danger bg-danger bg-opacity-10 p-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-3">⚠️</span>
+                    <div>
+                        <strong class="text-danger">Membership Expired</strong>
+                        <div class="small text-muted">Your gym subscription has ended. Renew now to continue scheduling appointments and enjoying personal training.</div>
+                    </div>
+                </div>
+                <div>
+                    <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-sm btn-danger fw-semibold">
+                        Renew Membership
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card dashboard-card border-0 shadow-sm border-start border-4 border-primary bg-light p-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-3">🏋️</span>
+                    <div>
+                        <strong>Choose a Gym Membership Plan</strong>
+                        <div class="small text-muted">Subscribe to a HealthTrack membership package for personalized trainer workouts, diet plans, and priority booking.</div>
+                    </div>
+                </div>
+                <div>
+                    <a asp-controller="MembershipPackages" asp-action="Index" class="btn btn-sm btn-outline-primary fw-semibold">
+                        View Packages
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
 <section class="card dashboard-card dashboard-section" aria-labelledby="quick-actions-heading"><div class="card-body">
     <div class="section-heading"><div><p class="section-eyebrow">Your next step</p><h2 id="quick-actions-heading">Quick Actions</h2></div></div>
     <div class="quick-actions">

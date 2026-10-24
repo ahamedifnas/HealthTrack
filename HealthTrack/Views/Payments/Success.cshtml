@@ -1,0 +1,99 @@
+@model HealthTrack.Models.Payments.PaymentReceiptViewModel
+@{
+    ViewData["Title"] = "Payment Status - " + Model.OrderId;
+}
+
+@if (Model.IsDemo) { <div class="alert alert-warning">Demo Payment – No Real Money</div> }
+<div class="row justify-content-center py-4">
+    <div class="col-12 col-md-8 col-lg-6">
+        @if (Model.Status == HealthTrack.Models.Payments.PaymentStatus.Paid)
+        {
+            <div class="card dashboard-card shadow-sm border-0 text-center">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-3 text-success fs-1">✓</div>
+                    <span class="badge bg-success mb-2 px-3 py-2 text-uppercase">Verified by Server</span>
+                    <h1 class="h3 fw-bold mb-1">Payment Successful!</h1>
+                    <p class="text-muted mb-4">Your subscription for <strong>@Model.PackageName</strong> is now active.</p>
+
+                    <div class="p-3 bg-light rounded text-start mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Order Reference:</span>
+                            <span class="fw-semibold">@Model.OrderId</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.PayHerePaymentId))
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">PayHere Payment ID:</span>
+                                <span class="fw-semibold">@Model.PayHerePaymentId</span>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Amount Paid:</span>
+                            <strong class="text-success">LKR @Model.AmountLKR.ToString("N2")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Payment Method:</span>
+                            <span>@(Model.PaymentMethod ?? "PayHere Sandbox")</span>
+                        </div>
+                        @if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+                        {
+                            <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                                <span class="text-muted">Subscription Validity:</span>
+                                <span class="fw-semibold text-primary">@Model.StartDate.Value.ToString("dd MMM yyyy") – @Model.EndDate.Value.ToString("dd MMM yyyy")</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a asp-action="Receipt" asp-route-orderId="@Model.OrderId" class="btn btn-outline-success">
+                            📄 View & Print Official Receipt
+                        </a>
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-success">
+                            Go to Dashboard
+                        </a>
+                        <a asp-action="History" class="btn btn-link text-muted">
+                            View Payment History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card dashboard-card shadow-sm border-0 text-center">
+                <div class="card-body p-4 p-md-5">
+                    <div class="mb-3 text-warning fs-1">⏳</div>
+                    <span class="badge bg-warning text-dark mb-2 px-3 py-2 text-uppercase">Awaiting Bank IPN</span>
+                    <h1 class="h3 fw-bold mb-1">Payment Under Verification</h1>
+                    <p class="text-muted mb-4">
+                        @(Model.IsDemo ? "This demo order is pending simulation. No real payment has been made." : "Your payment request was submitted to PayHere. The server is currently awaiting the signed instant payment notification (IPN) to activate your subscription.")
+                    </p>
+
+                    <div class="p-3 bg-light rounded text-start mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Order Reference:</span>
+                            <span class="fw-semibold">@Model.OrderId</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Package:</span>
+                            <span class="fw-semibold">@Model.PackageName</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Amount:</span>
+                            <span class="fw-semibold">LKR @Model.AmountLKR.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a asp-action="Success" asp-route-orderId="@Model.OrderId" class="btn btn-primary">
+                            🔄 Refresh Payment Status
+                        </a>
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">
+                            Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
